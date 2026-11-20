@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Samarqand Saroyi — Halol Milliy Taomlar Menyusi</title>
+  <title>Samarqand City — Halol Milliy Taomlar Menyusi</title>
   <meta name="description" content="Samarqand milliy taomlari va Halol restoran raqamli menyusi, yagona admin boshqaruv paneli, tezkor narx sozlash va QR-kod generatori." />
-  <meta property="og:title" content="Samarqand Saroyi — Halol Milliy Taomlar Menyusi" />
+  <meta property="og:title" content="Samarqand City — Halol Milliy Taomlar Menyusi" />
   <meta property="og:description" content="Samarqand milliy taomlari va Halol restoran raqamli menyusi, yagona admin boshqaruv paneli, tezkor narx sozlash va QR-kod generatori." />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
@@ -1818,7 +1818,7 @@
               <line x1="2.5" y1="21" x2="21.5" y2="21" />
             </svg>
           </span>
-          <span class="brand-wordmark" id="navBrandName">Samarqand Saroyi</span>
+          <span class="brand-wordmark" id="navBrandName">Samarqand City</span>
         </a>
       </div>
 
@@ -1841,7 +1841,7 @@
             <span data-i18n="halolSealText">100% HALOL</span>
           </span>
         </div>
-        <h1 class="hero-title" id="heroTitle">Samarqand Saroyi</h1>
+        <h1 class="hero-title" id="heroTitle">Samarqand City</h1>
         <p class="hero-subtitle" id="heroSubtitle">Registon an’analari asosida tayyorlangan asl Samarqand oshi, ko‘mir kaboblari va milliy taomlar — barchasi 100% halol mahsulotlardan.</p>
       </div>
 
@@ -1913,7 +1913,7 @@
   <footer class="site-footer">
     <div class="container footer-inner">
       <p class="footer-copy" id="footerCopy">
-        © <span id="footerYear">2026</span> <span id="footerBrandName">Samarqand Saroyi</span> · <span id="footerAddress">Registon ko‘chasi 24, Samarqand</span> · <span data-i18n="halolSealText">100% HALOL</span>
+        © <span id="footerYear">2026</span> <span id="footerBrandName">Samarqand City</span> · <span id="footerAddress">Registon ko‘chasi 24, Samarqand</span> · <span data-i18n="halolSealText">100% HALOL</span>
       </p>
     </div>
   </footer>
@@ -2084,7 +2084,7 @@
             <div class="panel-card" style="display: flex; flex-direction: column; align-items: center;">
               <span class="meta-label" style="margin-bottom: 14px;" data-i18n="tentPreviewLabel">Stol kartasi ko‘rinishi</span>
               <div class="qr-preview-card" id="qrTentPreviewCard">
-                <div class="qr-tent-brand" id="qrTentBrandName">Samarqand Saroyi</div>
+                <div class="qr-tent-brand" id="qrTentBrandName">Samarqand City</div>
                 <div class="qr-tent-halol">100% HALOL · SAMARQAND MILLIY TAOMLARI</div>
                 <div class="qr-tent-table" id="qrTentTableLabel" hidden>1-STOL</div>
                 <div class="qr-canvas-box" id="qrCanvasContainer"></div>
@@ -2304,7 +2304,7 @@
 
   <!-- PRINTABLE TABLE TENT CONTAINER (VISIBLE ONLY WHEN PRINTING) -->
   <div id="printTentContainer" class="print-only-tent" aria-hidden="true">
-    <div style="font-family: var(--font-display); font-size: 28pt; font-weight: 700; margin-bottom: 2mm;" id="printTentBrand">Samarqand Saroyi</div>
+    <div style="font-family: var(--font-display); font-size: 28pt; font-weight: 700; margin-bottom: 2mm;" id="printTentBrand">Samarqand City</div>
     <div style="font-size: 10pt; font-weight: 700; color: #15803d; letter-spacing: 0.08em; margin-bottom: 4mm;">100% HALOL · SAMARQAND MILLIY TAOMLARI</div>
     <div style="font-family: var(--font-mono); font-size: 13pt; font-weight: 600; color: #8b6d16; margin-bottom: 6mm;" id="printTentTable" hidden>1-STOL</div>
     <div id="printTentQrMount" style="padding: 4mm; border: 1px solid #d1d5db; margin-bottom: 6mm;"></div>
@@ -2489,7 +2489,7 @@
       };
 
       const DEFAULT_SETTINGS = {
-        brandName: 'Samarqand Saroyi',
+        brandName: 'Samarqand City',
         tagline: 'Registon an’analari asosida tayyorlangan asl Samarqand oshi, ko‘mir kaboblari va milliy taomlar — barchasi 100% halol mahsulotlardan.',
         hours: '08:30 – 23:30',
         address: 'Registon ko‘chasi 24, Samarqand',
@@ -2712,6 +2712,11 @@
         qrInstance: null,
         printQrInstance: null
       };
+
+      if (state.settings.brandName === 'Samarqand Saroyi') {
+        state.settings.brandName = 'Samarqand City';
+        saveStorage(STORAGE_KEYS.SETTINGS, state.settings);
+      }
 
       // =======================================================================
       // STORAGE & HELPERS
