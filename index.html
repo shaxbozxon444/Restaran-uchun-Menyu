@@ -1,0 +1,4202 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Samarqand Saroyi — Halol Milliy Taomlar Menyusi</title>
+  <meta name="description" content="Samarqand milliy taomlari va Halol restoran raqamli menyusi, yagona admin boshqaruv paneli, tezkor narx sozlash va QR-kod generatori." />
+  <meta property="og:title" content="Samarqand Saroyi — Halol Milliy Taomlar Menyusi" />
+  <meta property="og:description" content="Samarqand milliy taomlari va Halol restoran raqamli menyusi, yagona admin boshqaruv paneli, tezkor narx sozlash va QR-kod generatori." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#0D0E11" />
+
+  <!-- Typography: Cormorant Garamond (Display) + Plus Jakarta Sans (Body) + JetBrains Mono (Prices & URLs) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- FontAwesome Icons via CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- QRCode.js via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <style>
+    :root {
+      --bg-canvas: #0d0e11;
+      --bg-surface: #15171c;
+      --bg-elevated: #1c1f26;
+      --bg-input: #111317;
+      --border-hairline: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.14);
+      --border-gold: rgba(212, 175, 55, 0.36);
+
+      --text-primary: #f5f3ee;
+      --text-secondary: #a8adb8;
+      --text-muted: #767c89;
+
+      --accent-gold: #d4af37;
+      --accent-gold-bright: #e6c766;
+      --accent-gold-dim: rgba(212, 175, 55, 0.12);
+      --ink-on-gold: #0d0e11;
+
+      --halol-emerald: #2ea877;
+      --halol-emerald-soft: rgba(46, 168, 119, 0.14);
+      --status-spicy: #e86b52;
+      --status-new: #45b384;
+      --status-danger: #ef5350;
+      --status-danger-bg: rgba(239, 83, 80, 0.12);
+
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #07080a;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.5;
+      letter-spacing: 0.01em;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    a:focus-visible {
+      outline: 2px solid var(--accent-gold);
+      outline-offset: 2px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .phone-app-shell {
+      width: 100%;
+      max-width: 460px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background-color: var(--bg-canvas);
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (min-width: 480px) {
+      .phone-app-shell {
+        border-left: 1px solid var(--border-hairline);
+        border-right: 1px solid var(--border-hairline);
+        box-shadow: 0 0 60px rgba(0, 0, 0, 0.72);
+      }
+    }
+
+    .container {
+      width: 100%;
+      max-width: 460px;
+      margin: 0 auto;
+      padding: 0 14px;
+    }
+
+    .admin-view .container {
+      max-width: 960px;
+      padding: 0 16px;
+    }
+
+    /* =========================================================================
+       TOP BAR & RESTAURANT HEADER (PHONE FORMAT)
+       ========================================================================= */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 60;
+      border-bottom: 1px solid var(--border-hairline);
+      background: rgba(13, 14, 17, 0.94);
+      backdrop-filter: blur(10px);
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      height: 56px;
+    }
+
+    .brand-lockup {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-primary);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .brand-emblem {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-sm);
+      background: var(--accent-gold-dim);
+      color: var(--accent-gold);
+      flex-shrink: 0;
+    }
+
+    .topbar-left {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .left-menu-btn {
+      width: 44px;
+      height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-hairline);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out);
+      flex-shrink: 0;
+    }
+
+    .left-menu-btn:hover {
+      border-color: var(--border-gold);
+      color: var(--accent-gold-bright);
+    }
+
+    .left-quick-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      z-index: 90;
+      width: 224px;
+      padding: 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-md);
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.58);
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .left-quick-menu.open {
+      display: flex;
+    }
+
+    .left-menu-label {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 0 4px;
+    }
+
+    .left-menu-admin-btn {
+      width: 100%;
+      min-height: 44px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-hairline);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out);
+    }
+
+    .left-menu-admin-btn:hover {
+      border-color: var(--accent-gold);
+      color: var(--accent-gold-bright);
+    }
+
+    .brand-wordmark {
+      font-family: var(--font-display);
+      font-size: 1.32rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      line-height: 1;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .table-indicator {
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      color: var(--accent-gold-bright);
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+
+    .lang-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-sm);
+      background: var(--bg-surface);
+      padding: 4px;
+    }
+
+    .lang-btn {
+      min-height: 38px;
+      padding: 0 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out);
+      white-space: nowrap;
+    }
+
+    .lang-btn.active {
+      background: var(--accent-gold);
+      color: var(--ink-on-gold);
+    }
+
+    /* Restaurant Hero Info */
+    .restaurant-header {
+      padding: 18px 0 16px;
+      border-bottom: 1px solid var(--border-hairline);
+    }
+
+    .hero-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .hero-title-wrap {
+      width: 100%;
+    }
+
+    .hero-kicker-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .hero-kicker {
+      font-size: 0.76rem;
+      font-weight: 500;
+      color: var(--accent-gold);
+      letter-spacing: 0.02em;
+    }
+
+    /* Official Halol Seal Sticker in Hero */
+    .halol-seal {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 6px;
+      background: var(--halol-emerald-soft);
+      border: 1px solid rgba(46, 168, 119, 0.4);
+      color: #5ee0a8;
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: 1.95rem;
+      font-weight: 700;
+      line-height: 1.06;
+      color: var(--text-primary);
+      text-wrap: balance;
+      margin-bottom: 6px;
+    }
+
+    .hero-subtitle {
+      color: var(--text-secondary);
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+
+    .venue-meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 14px;
+      padding: 12px 14px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-md);
+      width: 100%;
+    }
+
+    .meta-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .meta-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .meta-value {
+      font-size: 0.82rem;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .wifi-copy-btn {
+      display: inline-flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 40px;
+      padding: 2px 0;
+      text-align: left;
+      color: var(--text-primary);
+      font-size: 0.84rem;
+      transition: color 160ms var(--ease-out);
+    }
+
+    .wifi-copy-btn:hover {
+      color: var(--accent-gold-bright);
+    }
+
+    .wifi-code {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--accent-gold-bright);
+      font-weight: 500;
+    }
+
+    /* =========================================================================
+       FILTER CONTROLS & LIVE SEARCH (STICKY FOR ONE-THUMB PHONE USE)
+       ========================================================================= */
+    .controls-section {
+      position: sticky;
+      top: 56px;
+      z-index: 45;
+      background: rgba(13, 14, 17, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 12px 0 8px;
+      border-bottom: 1px solid var(--border-hairline);
+    }
+
+    .controls-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .category-tabs {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+
+    .category-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .cat-tab {
+      min-height: 40px;
+      padding: 0 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-hairline);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      font-size: 0.84rem;
+      font-weight: 500;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out), border-color 160ms var(--ease-out);
+    }
+
+    .cat-tab:hover {
+      color: var(--text-primary);
+      border-color: var(--border-strong);
+    }
+
+    .cat-tab.active {
+      background: var(--accent-gold);
+      border-color: var(--accent-gold);
+      color: var(--ink-on-gold);
+      font-weight: 600;
+    }
+
+    .search-box {
+      position: relative;
+      width: 100%;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+      font-size: 0.9rem;
+    }
+
+    .search-input {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 40px 10px 40px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-hairline);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      font-size: 0.92rem;
+      transition: border-color 160ms var(--ease-out);
+    }
+
+    .search-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent-gold);
+    }
+
+    .search-clear {
+      position: absolute;
+      right: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 38px;
+      height: 38px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      border-radius: 6px;
+    }
+
+    .search-clear.visible {
+      display: inline-flex;
+    }
+
+    .search-clear:hover {
+      color: var(--text-primary);
+    }
+
+    .results-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px 0 0;
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    /* =========================================================================
+       MENU GRID & COMPACT 2-PER-ROW PHONE DISH CARDS (VIEW ONLY + STICKERS)
+       ========================================================================= */
+    .menu-main {
+      flex: 1;
+      padding: 12px 0 32px;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .dish-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      cursor: pointer;
+      text-align: left;
+      transition: transform 160ms var(--ease-out), border-color 160ms var(--ease-out);
+    }
+
+    .dish-card:active {
+      transform: scale(0.985);
+    }
+
+    .dish-card:hover {
+      border-color: rgba(212, 175, 55, 0.38);
+    }
+
+    .dish-card.is-unavailable {
+      opacity: 0.58;
+    }
+
+    .dish-card.is-unavailable .dish-img {
+      filter: grayscale(60%);
+    }
+
+    .dish-media {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      flex-shrink: 0;
+      background: var(--bg-elevated);
+      overflow: hidden;
+    }
+
+    .dish-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 280ms var(--ease-out);
+    }
+
+    .dish-card:hover .dish-img {
+      transform: scale(1.03);
+    }
+
+    .dish-img-fallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px;
+      background: linear-gradient(145deg, #1b1d24 0%, #121318 100%);
+      color: var(--accent-gold);
+      text-align: center;
+    }
+
+    .dish-img-fallback span {
+      font-family: var(--font-display);
+      font-size: 0.86rem;
+      color: var(--text-secondary);
+    }
+
+    .dish-scrim {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(13, 14, 17, 0.68) 0%, rgba(13, 14, 17, 0) 52%);
+      pointer-events: none;
+    }
+
+    /* Corner Sticker Overlay on Photo */
+    .dish-halol-corner {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: rgba(13, 14, 17, 0.86);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(46, 168, 119, 0.45);
+      color: #63e6ae;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .dish-sticker-corner {
+      position: absolute;
+      bottom: 6px;
+      left: 6px;
+      right: auto;
+      max-width: calc(100% - 12px);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: rgba(13, 14, 17, 0.88);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      font-size: 0.62rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .dish-sticker-corner.sticker-chef {
+      border-color: rgba(212, 175, 55, 0.45);
+      color: var(--accent-gold-bright);
+    }
+
+    .dish-sticker-corner.sticker-spicy {
+      border-color: rgba(232, 107, 82, 0.45);
+      color: #ff8e78;
+    }
+
+    .dish-sticker-corner.sticker-new {
+      border-color: rgba(69, 179, 132, 0.45);
+      color: #63e6ae;
+    }
+
+    .dish-sticker-corner.sticker-samarkand {
+      border-color: rgba(96, 165, 250, 0.45);
+      color: #93c5fd;
+    }
+
+    .dish-body {
+      padding: 10px 10px 11px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .dish-kicker-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      min-height: 15px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .dish-title {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1.16;
+      color: var(--text-primary);
+      text-wrap: balance;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .dish-desc {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 2px;
+    }
+
+    .dish-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding-top: 7px;
+      margin-top: auto;
+      border-top: 1px solid var(--border-hairline);
+    }
+
+    .dish-price {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--accent-gold-bright);
+      white-space: nowrap;
+    }
+
+    .dish-status-note {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .dish-status-note.unavailable {
+      color: var(--status-spicy);
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 48px 18px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-md);
+    }
+
+    .empty-state i {
+      font-size: 2rem;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    .empty-state h3 {
+      font-family: var(--font-display);
+      font-size: 1.38rem;
+      margin-bottom: 6px;
+    }
+
+    .empty-state p {
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+      margin-bottom: 16px;
+    }
+
+    /* =========================================================================
+       FOOTER (CLEAN PHONE FOOTER WITHOUT ADMIN BUTTON)
+       ========================================================================= */
+    .site-footer {
+      margin-top: auto;
+      border-top: 1px solid var(--border-hairline);
+      padding: 18px 0 24px;
+      background: var(--bg-canvas);
+      text-align: center;
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .footer-copy {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* =========================================================================
+       MODALS & ADMIN OVERLAY
+       ========================================================================= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(6, 7, 9, 0.82);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0;
+      overflow-y: auto;
+    }
+
+    @media (min-width: 520px) {
+      .modal-backdrop {
+        align-items: center;
+        padding: 16px;
+      }
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 460px;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      overflow: hidden;
+      animation: modalFadeIn 180ms var(--ease-out);
+    }
+
+    @media (min-width: 520px) {
+      .modal-card {
+        border-radius: var(--radius-lg);
+      }
+    }
+
+    .modal-card.wide {
+      max-width: 660px;
+    }
+
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-hairline);
+      flex-shrink: 0;
+    }
+
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .icon-close-btn {
+      width: 44px;
+      height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out);
+    }
+
+    .icon-close-btn:hover {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+    }
+
+    .modal-body {
+      padding: 18px 20px 22px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    /* Dish Detail Modal */
+    .detail-hero {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      max-height: 250px;
+      flex-shrink: 0;
+      background: var(--bg-elevated);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .detail-hero img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .detail-meta-line {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .detail-price {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--accent-gold-bright);
+      margin-top: 16px;
+    }
+
+    /* Buttons */
+    .btn {
+      min-height: 44px;
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: background-color 160ms var(--ease-out), border-color 160ms var(--ease-out), color 160ms var(--ease-out);
+    }
+
+    .btn-primary {
+      background: var(--accent-gold);
+      color: var(--ink-on-gold);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-gold-bright);
+    }
+
+    .btn-secondary {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-strong);
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent-gold);
+      color: var(--accent-gold-bright);
+    }
+
+    .btn-danger {
+      background: var(--status-danger-bg);
+      border: 1px solid rgba(239, 83, 80, 0.35);
+      color: #ff8a80;
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 83, 80, 0.22);
+    }
+
+    .btn-sm {
+      min-height: 40px;
+      padding: 6px 12px;
+      font-size: 0.82rem;
+    }
+
+    /* Form Controls */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 540px) {
+      .form-grid.two-col {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .field-input,
+    .field-select,
+    .field-textarea {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background: var(--bg-input);
+      color: var(--text-primary);
+      font-size: 0.92rem;
+    }
+
+    .field-textarea {
+      min-height: 92px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .field-input:focus,
+    .field-select:focus,
+    .field-textarea:focus {
+      outline: none;
+      border-color: var(--accent-gold);
+    }
+
+    .field-hint {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .error-banner {
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      background: var(--status-danger-bg);
+      border: 1px solid rgba(239, 83, 80, 0.35);
+      color: #ff9e96;
+      font-size: 0.86rem;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    .error-banner.visible {
+      display: block;
+    }
+
+    /* =========================================================================
+       ADMIN DASHBOARD VIEW (SINGLE-OWNER + QUICK PRICE EDITOR)
+       ========================================================================= */
+    .admin-view {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      background: var(--bg-canvas);
+      overflow-y: auto;
+    }
+
+    .admin-view.open {
+      display: block;
+    }
+
+    .admin-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(13, 14, 17, 0.96);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border-hairline);
+    }
+
+    .admin-topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 64px;
+      padding: 10px 0;
+      flex-wrap: wrap;
+    }
+
+    .admin-heading-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .admin-title {
+      font-family: var(--font-display);
+      font-size: 1.55rem;
+      font-weight: 700;
+    }
+
+    .admin-single-note {
+      font-size: 0.78rem;
+      color: #5ee0a8;
+      font-weight: 600;
+    }
+
+    .admin-nav-tabs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 18px 0;
+      border-bottom: 1px solid var(--border-hairline);
+      overflow-x: auto;
+    }
+
+    .admin-tab-btn {
+      min-height: 44px;
+      padding: 0 18px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-hairline);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .admin-tab-btn.active {
+      background: var(--accent-gold);
+      border-color: var(--accent-gold);
+      color: var(--ink-on-gold);
+    }
+
+    .admin-panel-body {
+      padding: 24px 0 64px;
+    }
+
+    .admin-tab-pane {
+      display: none;
+    }
+
+    .admin-tab-pane.active {
+      display: block;
+    }
+
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      padding: 16px 20px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-md);
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .admin-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .admin-dish-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .admin-dish-row {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 16px;
+      align-items: center;
+      padding: 14px 16px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-md);
+    }
+
+    @media (min-width: 960px) {
+      .admin-dish-row {
+        grid-template-columns: 84px 1fr auto;
+      }
+    }
+
+    .admin-thumb {
+      width: 72px;
+      height: 54px;
+      border-radius: var(--radius-sm);
+      object-fit: cover;
+      background: var(--bg-elevated);
+    }
+
+    @media (min-width: 960px) {
+      .admin-thumb {
+        width: 84px;
+        height: 63px;
+      }
+    }
+
+    .admin-row-info h4 {
+      font-family: var(--font-display);
+      font-size: 1.28rem;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .admin-row-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .admin-row-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-hairline);
+    }
+
+    @media (min-width: 960px) {
+      .admin-row-actions {
+        grid-column: auto;
+        padding-top: 0;
+        border-top: none;
+        justify-content: flex-end;
+      }
+    }
+
+    /* Inline Quick Price Setter */
+    .quick-price-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      padding: 3px 4px 3px 10px;
+    }
+
+    .quick-price-input {
+      width: 105px;
+      background: transparent;
+      border: none;
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--accent-gold-bright);
+    }
+
+    .quick-price-input:focus {
+      outline: none;
+    }
+
+    /* Toggle Switch */
+    .switch-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+      padding: 0 6px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .switch-input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .switch-track {
+      width: 42px;
+      height: 24px;
+      border-radius: 999px;
+      background: #2b2f3a;
+      border: 1px solid var(--border-strong);
+      position: relative;
+      transition: background-color 160ms var(--ease-out);
+      flex-shrink: 0;
+    }
+
+    .switch-track::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--text-primary);
+      transition: transform 160ms var(--ease-out);
+    }
+
+    .switch-input:checked + .switch-track {
+      background: var(--status-new);
+      border-color: var(--status-new);
+    }
+
+    .switch-input:checked + .switch-track::after {
+      transform: translateX(18px);
+    }
+
+    .switch-input:focus-visible + .switch-track {
+      outline: 2px solid var(--accent-gold);
+      outline-offset: 2px;
+    }
+
+    /* QR Code Generator Section */
+    .qr-workspace {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    @media (min-width: 900px) {
+      .qr-workspace {
+        grid-template-columns: 1.1fr 0.9fr;
+      }
+    }
+
+    .panel-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-md);
+      padding: 24px;
+    }
+
+    .panel-card h3 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      margin-bottom: 6px;
+    }
+
+    .panel-lead {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .qr-preview-card {
+      background: #ffffff;
+      color: #111317;
+      border-radius: var(--radius-md);
+      padding: 28px 24px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid rgba(212, 175, 55, 0.45);
+    }
+
+    .qr-tent-brand {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #0d0e11;
+      line-height: 1.1;
+    }
+
+    .qr-tent-halol {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #15803d;
+      letter-spacing: 0.06em;
+    }
+
+    .qr-tent-table {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #8b6d16;
+      letter-spacing: 0.04em;
+    }
+
+    .qr-canvas-box {
+      padding: 14px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 220px;
+      min-height: 220px;
+    }
+
+    .qr-canvas-box img,
+    .qr-canvas-box canvas {
+      display: block;
+      width: 200px !important;
+      height: 200px !important;
+    }
+
+    .qr-tent-cta {
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .qr-tent-wifi {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      color: #4b5563;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 10px;
+      width: 100%;
+    }
+
+    .qr-url-preview {
+      margin-top: 14px;
+      padding: 10px 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      word-break: break-all;
+    }
+
+    .qr-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    /* Image Upload / URL Switcher */
+    .upload-mode-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .image-preview-box {
+      margin-top: 10px;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      max-width: 240px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-hairline);
+      overflow: hidden;
+      background: var(--bg-input);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+    }
+
+    .image-preview-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Visual Customer Search Dropdown */
+    .search-photo-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-md);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+      max-height: 360px;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .search-photo-dropdown.open {
+      display: block;
+    }
+
+    .search-drop-item {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-hairline);
+      text-align: left;
+      transition: background-color 140ms var(--ease-out);
+    }
+
+    .search-drop-item:last-child {
+      border-bottom: none;
+    }
+
+    .search-drop-item:hover {
+      background: rgba(212, 175, 55, 0.1);
+    }
+
+    .search-drop-thumb {
+      width: 56px;
+      height: 42px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: var(--bg-surface);
+      flex-shrink: 0;
+    }
+
+    .search-drop-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .search-drop-title {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .search-drop-sub {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .search-drop-price {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--accent-gold-bright);
+      white-space: nowrap;
+    }
+
+    /* Admin Dish Photo Search Gallery */
+    .photo-search-panel {
+      margin-top: 8px;
+      margin-bottom: 12px;
+      padding: 14px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-sm);
+    }
+
+    .photo-search-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .photo-quick-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .photo-tag-btn {
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border-hairline);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      font-size: 0.78rem;
+      font-weight: 500;
+      transition: border-color 140ms var(--ease-out), color 140ms var(--ease-out);
+    }
+
+    .photo-tag-btn:hover {
+      border-color: var(--accent-gold);
+      color: var(--accent-gold-bright);
+    }
+
+    .photo-results-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    @media (min-width: 540px) {
+      .photo-results-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .photo-pick-btn {
+      position: relative;
+      aspect-ratio: 4 / 3;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 2px solid transparent;
+      background: var(--bg-surface);
+      transition: border-color 140ms var(--ease-out), transform 140ms var(--ease-out);
+    }
+
+    .photo-pick-btn:hover {
+      border-color: var(--accent-gold);
+      transform: translateY(-1px);
+    }
+
+    .photo-pick-btn.selected {
+      border-color: var(--status-new);
+    }
+
+    .photo-pick-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .photo-pick-caption {
+      position: absolute;
+      inset: auto 0 0 0;
+      padding: 4px 6px;
+      background: rgba(13, 14, 17, 0.82);
+      font-size: 0.68rem;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: left;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      z-index: 200;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-gold);
+      color: var(--text-primary);
+      padding: 12px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast i {
+      color: var(--accent-gold);
+    }
+
+    /* =========================================================================
+       PRINT TABLE TENT STYLES (@media print)
+       ========================================================================= */
+    .print-only-tent {
+      display: none;
+    }
+
+    @media print {
+      body > *:not(#printTentContainer) {
+        display: none !important;
+      }
+
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: 100vh !important;
+        padding: 0 !important;
+      }
+
+      #printTentContainer {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 135mm !important;
+        padding: 16mm 14mm !important;
+        border: 2px solid #b89427 !important;
+        outline: 1px solid #111317 !important;
+        outline-offset: -6px !important;
+        text-align: center !important;
+        background: #ffffff !important;
+        color: #111317 !important;
+        margin: 0 auto !important;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone-app-shell">
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="topbar-left">
+        <button
+          type="button"
+          class="left-menu-btn"
+          id="leftMenuToggleBtn"
+          aria-expanded="false"
+          aria-controls="leftQuickMenu"
+          aria-label="Menyuni ochish"
+        >
+          <i class="fa-solid fa-bars" aria-hidden="true"></i>
+        </button>
+
+        <div class="left-quick-menu" id="leftQuickMenu" role="menu" aria-label="Til va Admin menyusi">
+          <span class="left-menu-label" data-i18n="langMenuLabel">Til / Language</span>
+          <div class="lang-switch" role="group" aria-label="Tilni tanlash">
+            <button type="button" class="lang-btn active" data-lang="uz" id="langBtnUz">UZ</button>
+            <button type="button" class="lang-btn" data-lang="en" id="langBtnEn">EN</button>
+          </div>
+          <div style="border-top: 1px solid var(--border-hairline); margin: 2px 0;"></div>
+          <button type="button" class="left-menu-admin-btn" id="openAdminFromLeftMenuBtn">
+            <i class="fa-solid fa-lock" style="color: var(--accent-gold);" aria-hidden="true"></i>
+            <span data-i18n="adminLoginBtn">Admin Kirish</span>
+          </button>
+        </div>
+
+        <a href="#top" class="brand-lockup" id="top">
+          <span class="brand-emblem" aria-hidden="true">
+            <!-- Custom Registon Samarkand Arch Emblem SVG -->
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 21V11.5C4 7 12 3 12 3s8 4 8 8.5V21" />
+              <path d="M8.5 21v-6.5C8.5 11.5 12 9 12 9s3.5 2.5 3.5 5.5V21" />
+              <line x1="2.5" y1="21" x2="21.5" y2="21" />
+            </svg>
+          </span>
+          <span class="brand-wordmark" id="navBrandName">Samarqand Saroyi</span>
+        </a>
+      </div>
+
+      <div class="topbar-actions">
+        <span class="table-indicator" id="tableBannerText" hidden></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- RESTAURANT HEADER & METADATA -->
+  <section class="restaurant-header">
+    <div class="container hero-grid">
+      <div class="hero-title-wrap">
+        <div class="hero-kicker-row">
+          <p class="hero-kicker" id="heroKicker">Samarqand Milliy Taomlari · Raqamli Menyu</p>
+          <span class="halol-seal" aria-label="100% Halol sertifikatlangan">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+            </svg>
+            <span data-i18n="halolSealText">100% HALOL</span>
+          </span>
+        </div>
+        <h1 class="hero-title" id="heroTitle">Samarqand Saroyi</h1>
+        <p class="hero-subtitle" id="heroSubtitle">Registon an’analari asosida tayyorlangan asl Samarqand oshi, ko‘mir kaboblari va milliy taomlar — barchasi 100% halol mahsulotlardan.</p>
+      </div>
+
+      <div class="venue-meta-grid" aria-label="Restoran ma'lumotlari">
+        <div class="meta-block">
+          <span class="meta-label" data-i18n="hoursLabel">Ish vaqti</span>
+          <span class="meta-value" id="venueHours">08:30 – 23:30</span>
+        </div>
+        <div class="meta-block">
+          <span class="meta-label" data-i18n="addressLabel">Manzil</span>
+          <span class="meta-value" id="venueAddress">Registon ko‘chasi 24, Samarqand</span>
+        </div>
+        <div class="meta-block" style="grid-column: 1 / -1; border-top: 1px solid var(--border-hairline); padding-top: 10px;">
+          <span class="meta-label" data-i18n="wifiLabel">Mehmon Wi-Fi (Nusxalash uchun bosing)</span>
+          <button type="button" class="wifi-copy-btn" id="copyWifiBtn" title="Wi-Fi parolini nusxalash">
+            <i class="fa-solid fa-wifi" aria-hidden="true"></i>
+            <span id="venueWifiSsid">SAMARQAND_HALOL</span>
+            <span aria-hidden="true">·</span>
+            <span class="wifi-code" id="venueWifiPass">Registon2026</span>
+            <i class="fa-regular fa-copy" style="font-size: 0.82rem; opacity: 0.7;" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORY FILTERS & LIVE SEARCH -->
+  <section class="controls-section" aria-label="Menyu filtrlari">
+    <div class="container">
+      <div class="controls-bar">
+        <div class="category-tabs" id="categoryTabs" role="tablist" aria-label="Taom bo‘limlari">
+          <!-- Dynamically populated -->
+        </div>
+
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
+          <label for="menuSearchInput" class="sr-only">Taom qidirish</label>
+          <input
+            type="search"
+            id="menuSearchInput"
+            class="search-input"
+            placeholder="Taom nomi yoki tarkibini qidiring..."
+            autocomplete="off"
+          />
+          <button type="button" class="search-clear" id="searchClearBtn" aria-label="Qidiruvni tozalash">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+          <div class="search-photo-dropdown" id="searchPhotoDropdown" role="listbox" aria-label="Qidiruv natijalari"></div>
+        </div>
+      </div>
+
+      <div class="results-bar">
+        <span id="resultsCountText">8 ta taom ko‘rsatilmoqda</span>
+        <span data-i18n="askWaiterNote">Buyurtma berish uchun ofitsiantga murojaat qiling</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CUSTOMER MENU GRID (STRICTLY VIEW-ONLY) -->
+  <main class="menu-main">
+    <div class="container">
+      <div class="menu-grid" id="menuGrid" aria-live="polite">
+        <!-- Dish cards rendered via JS -->
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER (NO ADMIN BUTTON AT BOTTOM — ADMIN IS IN LEFT MENU) -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-copy" id="footerCopy">
+        © <span id="footerYear">2026</span> <span id="footerBrandName">Samarqand Saroyi</span> · <span id="footerAddress">Registon ko‘chasi 24, Samarqand</span> · <span data-i18n="halolSealText">100% HALOL</span>
+      </p>
+    </div>
+  </footer>
+  </div><!-- /.phone-app-shell -->
+
+  <!-- VIEW-ONLY DISH DETAIL MODAL -->
+  <div class="modal-backdrop" id="dishDetailModal" role="dialog" aria-modal="true" aria-labelledby="detailModalTitle">
+    <div class="modal-card">
+      <div class="detail-hero" id="detailHeroWrap">
+        <img id="detailModalImg" src="" alt="" referrerpolicy="no-referrer" />
+        <div class="dish-img-fallback" id="detailImgFallback" style="display: none;">
+          <i class="fa-solid fa-utensils fa-2x" aria-hidden="true"></i>
+          <span id="detailFallbackTitle"></span>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="detail-meta-line" id="detailMetaLine"></div>
+        <h2 class="modal-title" id="detailModalTitle" style="font-size: 1.75rem; margin-bottom: 10px;"></h2>
+        <p id="detailModalDesc" style="color: var(--text-secondary); line-height: 1.65;"></p>
+        <div class="detail-price" id="detailModalPrice"></div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 22px;">
+          <button type="button" class="btn btn-secondary" id="closeDishDetailBtn" data-i18n="closeBtn">Yopish</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SINGLE-OWNER ADMIN LOGIN MODAL (Default PIN: 1234) -->
+  <div class="modal-backdrop" id="adminLoginModal" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <h2 class="modal-title" id="loginModalTitle" data-i18n="adminAccessTitle">Yagona Admin Kirishi</h2>
+        <button type="button" class="icon-close-btn" id="closeLoginModalBtn" aria-label="Yopish">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </div>
+      <form class="modal-body" id="adminLoginForm">
+        <div class="error-banner" id="loginErrorBanner" role="alert"></div>
+        <div class="error-banner" id="singleAdminLockBanner" style="background: rgba(212,175,55,0.12); border-color: rgba(212,175,55,0.38); color: var(--accent-gold-bright);" role="status"></div>
+        <div class="field" style="margin-bottom: 18px;">
+          <label for="adminPinInput" class="field-label" data-i18n="enterPinLabel">Restoran egasi PIN kodini kiriting</label>
+          <input
+            type="password"
+            id="adminPinInput"
+            class="field-input"
+            style="font-family: var(--font-mono); letter-spacing: 0.2em;"
+            placeholder="••••"
+            autocomplete="current-password"
+            required
+          />
+          <span class="field-hint" data-i18n="defaultPinHint">Faqat bir kishi (bosh admin) kira oladi. Standart PIN: 1234</span>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
+          <button type="button" class="btn btn-secondary" id="cancelLoginBtn" data-i18n="cancelBtn">Bekor qilish</button>
+          <button type="submit" class="btn btn-primary" id="unlockSubmitBtn" data-i18n="unlockBtn">Panelni ochish</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ADMIN DASHBOARD OVERLAY -->
+  <section class="admin-view" id="adminDashboard" aria-label="Admin Boshqaruv Paneli">
+    <div class="admin-topbar">
+      <div class="container admin-topbar-inner">
+        <div class="admin-heading-group">
+          <span class="brand-emblem" aria-hidden="true">
+            <i class="fa-solid fa-sliders"></i>
+          </span>
+          <div>
+            <h2 class="admin-title" data-i18n="dashboardTitle">Admin Boshqaruv Paneli</h2>
+            <div class="admin-single-note" data-i18n="singleAdminNote">Yagona Admin Sessiyasi Faol (Faqat 1 kishi)</div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button type="button" class="btn btn-secondary btn-sm" id="exitAdminBtn">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+            <span data-i18n="backToMenuBtn">Menyuga qaytish</span>
+          </button>
+          <button type="button" class="btn btn-danger btn-sm" id="logoutAdminBtn">
+            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+            <span data-i18n="lockBtn">Chiqish va Qulflash</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="admin-nav-tabs" role="tablist">
+        <button type="button" class="admin-tab-btn active" data-admin-tab="dishes">
+          <i class="fa-solid fa-utensils" aria-hidden="true"></i>
+          <span data-i18n="tabDishes">Taomlar va Narxlar</span>
+        </button>
+        <button type="button" class="admin-tab-btn" data-admin-tab="qr">
+          <i class="fa-solid fa-qrcode" aria-hidden="true"></i>
+          <span data-i18n="tabQr">QR-Kod va Chop etish</span>
+        </button>
+        <button type="button" class="admin-tab-btn" data-admin-tab="settings">
+          <i class="fa-solid fa-store" aria-hidden="true"></i>
+          <span data-i18n="tabSettings">Restoran, PIN va Zaxira</span>
+        </button>
+      </div>
+
+      <div class="admin-panel-body">
+        <!-- PANE 1: DISHES & QUICK PRICE MANAGEMENT -->
+        <div class="admin-tab-pane active" id="adminPaneDishes">
+          <div class="stats-strip" id="adminStatsStrip"></div>
+
+          <div class="admin-toolbar">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <button type="button" class="btn btn-primary" id="openAddDishBtn">
+                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                <span data-i18n="addDishBtn">Yangi taom qo‘shish</span>
+              </button>
+            </div>
+
+            <div class="search-box" style="max-width: 280px;">
+              <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
+              <label for="adminSearchInput" class="sr-only">Taomlarni filtrlash</label>
+              <input type="search" id="adminSearchInput" class="search-input" placeholder="Taomlarni qidirish..." />
+            </div>
+          </div>
+
+          <div class="admin-dish-list" id="adminDishList"></div>
+        </div>
+
+        <!-- PANE 2: QR CODE GENERATOR & PRINTABLE TABLE TENT -->
+        <div class="admin-tab-pane" id="adminPaneQr">
+          <div class="qr-workspace">
+            <div class="panel-card">
+              <h3 data-i18n="qrHeading">QR-Kod Generatori</h3>
+              <p class="panel-lead" data-i18n="qrLead">
+                Stollar uchun skanerlanadigan menyu QR-kodini yarating. Saytni xostingga joylagach (Netlify, Vercel, GitHub Pages) havolani kiriting.
+              </p>
+
+              <div class="form-grid">
+                <div class="field">
+                  <label for="qrBaseUrlInput" class="field-label" data-i18n="qrUrlLabel">Sayt havolasi (URL)</label>
+                  <input type="url" id="qrBaseUrlInput" class="field-input" style="font-family: var(--font-mono); font-size: 0.85rem;" placeholder="https://samarqand-menu.netlify.app" />
+                  <span class="field-hint" data-i18n="qrUrlHint">Standart holatda joriy havola olinadi. Xostingga yuklagandan so‘ng o‘z domeningizni kiriting.</span>
+                </div>
+
+                <div class="field">
+                  <label for="qrTableInput" class="field-label" data-i18n="qrTableLabel">Stol raqami (Ixtiyoriy)</label>
+                  <input type="text" id="qrTableInput" class="field-input" placeholder="Masalan: 5 yoki VIP-2" maxlength="16" />
+                  <span class="field-hint" data-i18n="qrTableHint">Havolaga ?table=... qo‘shadi va stol kartasida raqamni ko‘rsatadi.</span>
+                </div>
+              </div>
+
+              <div class="qr-url-preview" id="qrFinalUrlDisplay"></div>
+
+              <div class="qr-actions">
+                <button type="button" class="btn btn-primary" id="downloadQrPngBtn">
+                  <i class="fa-solid fa-download" aria-hidden="true"></i>
+                  <span data-i18n="downloadQrBtn">QR-kodni yuklab olish (PNG)</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="printTableTentBtn">
+                  <i class="fa-solid fa-print" aria-hidden="true"></i>
+                  <span data-i18n="printTentBtn">Stol kartasini chop etish</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="copyQrLinkBtn">
+                  <i class="fa-regular fa-copy" aria-hidden="true"></i>
+                  <span data-i18n="copyLinkBtn">Havolani nusxalash</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="panel-card" style="display: flex; flex-direction: column; align-items: center;">
+              <span class="meta-label" style="margin-bottom: 14px;" data-i18n="tentPreviewLabel">Stol kartasi ko‘rinishi</span>
+              <div class="qr-preview-card" id="qrTentPreviewCard">
+                <div class="qr-tent-brand" id="qrTentBrandName">Samarqand Saroyi</div>
+                <div class="qr-tent-halol">100% HALOL · SAMARQAND MILLIY TAOMLARI</div>
+                <div class="qr-tent-table" id="qrTentTableLabel" hidden>1-STOL</div>
+                <div class="qr-canvas-box" id="qrCanvasContainer"></div>
+                <div class="qr-tent-cta" data-i18n="scanPromptText">Menyuni ko‘rish uchun kamerangizni yo‘naltiring</div>
+                <div class="qr-tent-wifi" id="qrTentWifiInfo">Wi-Fi: SAMARQAND_HALOL · Registon2026</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANE 3: RESTAURANT SETTINGS & JSON BACKUP -->
+        <div class="admin-tab-pane" id="adminPaneSettings">
+          <div class="qr-workspace">
+            <form class="panel-card" id="restaurantSettingsForm">
+              <h3 data-i18n="venueSettingsHeading">Restoran va Yagona Admin PIN Sozlamalari</h3>
+              <p class="panel-lead" data-i18n="venueSettingsLead">O‘zgarishlar darhol mijoz menyusi va QR stol kartasida yangilanadi.</p>
+
+              <div class="form-grid two-col">
+                <div class="field">
+                  <label for="setBrandName" class="field-label" data-i18n="setBrandLabel">Restoran nomi</label>
+                  <input type="text" id="setBrandName" class="field-input" required />
+                </div>
+                <div class="field">
+                  <label for="setHours" class="field-label" data-i18n="hoursLabel">Ish vaqti</label>
+                  <input type="text" id="setHours" class="field-input" required />
+                </div>
+                <div class="field" style="grid-column: 1 / -1;">
+                  <label for="setTagline" class="field-label" data-i18n="setTaglineLabel">Qisqacha ta’rif</label>
+                  <input type="text" id="setTagline" class="field-input" required />
+                </div>
+                <div class="field" style="grid-column: 1 / -1;">
+                  <label for="setAddress" class="field-label" data-i18n="addressLabel">Manzil</label>
+                  <input type="text" id="setAddress" class="field-input" required />
+                </div>
+                <div class="field">
+                  <label for="setWifiSsid" class="field-label" data-i18n="setWifiSsidLabel">Wi-Fi nomi</label>
+                  <input type="text" id="setWifiSsid" class="field-input" required />
+                </div>
+                <div class="field">
+                  <label for="setWifiPass" class="field-label" data-i18n="setWifiPassLabel">Wi-Fi paroli</label>
+                  <input type="text" id="setWifiPass" class="field-input" style="font-family: var(--font-mono);" required />
+                </div>
+                <div class="field" style="grid-column: 1 / -1;">
+                  <label for="setAdminPin" class="field-label" data-i18n="setAdminPinLabel">Yagona Admin PIN kodi (kamida 4 belgi)</label>
+                  <input type="text" id="setAdminPin" class="field-input" style="font-family: var(--font-mono);" minlength="4" required />
+                  <span class="field-hint">Ushbu maxfiy kod orqali faqat siz (restoran egasi) admin panelga kira olasiz.</span>
+                </div>
+              </div>
+
+              <div style="margin-top: 20px;">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fa-solid fa-check" aria-hidden="true"></i>
+                  <span data-i18n="saveSettingsBtn">Ma’lumotlarni saqlash</span>
+                </button>
+              </div>
+            </form>
+
+            <div class="panel-card">
+              <h3 data-i18n="backupHeading">Ma’lumotlarni zaxiralash</h3>
+              <p class="panel-lead" data-i18n="backupLead">
+                Barcha taomlar, narxlar va sozlamalar brauzerning localStorage xotirasida avtomatik saqlanadi. JSON fayl ko‘rinishida zaxira nusxa oling.
+              </p>
+
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button type="button" class="btn btn-secondary" id="exportJsonBtn" style="justify-content: flex-start;">
+                  <i class="fa-solid fa-file-export" aria-hidden="true"></i>
+                  <span data-i18n="exportJsonBtn">JSON Zaxira yuklab olish</span>
+                </button>
+
+                <label class="btn btn-secondary" style="justify-content: flex-start; cursor: pointer;">
+                  <i class="fa-solid fa-file-import" aria-hidden="true"></i>
+                  <span data-i18n="importJsonBtn">JSON Zaxiradan tiklash</span>
+                  <input type="file" id="importJsonInput" accept=".json,application/json" class="sr-only" />
+                </label>
+
+                <div style="border-top: 1px solid var(--border-hairline); margin: 8px 0; padding-top: 16px;">
+                  <div id="resetConfirmWrap">
+                    <button type="button" class="btn btn-danger" id="requestResetBtn" style="width: 100%; justify-content: flex-start;">
+                      <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                      <span data-i18n="resetSampleBtn">Standart Samarqand menyusiga qaytarish</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ADD / EDIT DISH MODAL -->
+  <div class="modal-backdrop" id="dishFormModal" role="dialog" aria-modal="true" aria-labelledby="dishFormTitle">
+    <div class="modal-card wide">
+      <div class="modal-header">
+        <h2 class="modal-title" id="dishFormTitle">Yangi taom qo‘shish</h2>
+        <button type="button" class="icon-close-btn" id="closeDishFormBtn" aria-label="Yopish">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </div>
+      <form class="modal-body" id="dishEditorForm">
+        <input type="hidden" id="editDishId" />
+        <div class="form-grid two-col">
+          <div class="field">
+            <label for="dishTitleUz" class="field-label">Taom nomi (O‘zbekcha)</label>
+            <input type="text" id="dishTitleUz" class="field-input" placeholder="Masalan: Samarqand Zig‘ir Oshi" required />
+          </div>
+          <div class="field">
+            <label for="dishTitleEn" class="field-label">Dish Name (English - ixtiyoriy)</label>
+            <input type="text" id="dishTitleEn" class="field-input" placeholder="e.g., Samarkand Zigir Plov" />
+          </div>
+          <div class="field">
+            <label for="dishCategory" class="field-label">Bo‘lim (Kategoriya)</label>
+            <select id="dishCategory" class="field-select" required>
+              <option value="Milliy Taomlar">Milliy Taomlar</option>
+              <option value="Shashliklar">Shashliklar</option>
+              <option value="Suyuq Taomlar">Suyuq Taomlar</option>
+              <option value="Salatlar">Salatlar</option>
+              <option value="Ichimliklar">Ichimliklar</option>
+              <option value="Shirinliklar">Shirinliklar</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="dishPrice" class="field-label">Narxi (UZS / so‘m)</label>
+            <input type="number" id="dishPrice" class="field-input" style="font-family: var(--font-mono);" min="0" step="500" placeholder="55000" required />
+          </div>
+          <div class="field">
+            <label for="dishBadge" class="field-label">Stiker / Belgicha</label>
+            <select id="dishBadge" class="field-select">
+              <option value="">Yo‘q</option>
+              <option value="Oshpaz tavsiyasi">Oshpaz tavsiyasi</option>
+              <option value="Samarqandcha">Samarqandcha maxsus</option>
+              <option value="Yangi">Yangi</option>
+              <option value="Achchiq">Achchiq</option>
+            </select>
+          </div>
+          <div class="field" style="justify-content: flex-end; gap: 8px;">
+            <label class="switch-wrap">
+              <input type="checkbox" id="dishHalol" class="switch-input" checked />
+              <span class="switch-track"></span>
+              <span>Halol Stikeri</span>
+            </label>
+            <label class="switch-wrap">
+              <input type="checkbox" id="dishAvailable" class="switch-input" checked />
+              <span class="switch-track"></span>
+              <span>Sotuvda mavjud</span>
+            </label>
+          </div>
+          <div class="field" style="grid-column: 1 / -1;">
+            <label for="dishDescUz" class="field-label">Taom tarkibi va tavsifi (O‘zbekcha)</label>
+            <textarea id="dishDescUz" class="field-textarea" placeholder="Masalliqlar, tayyorlanish usuli va porsiya haqida..." required></textarea>
+          </div>
+          <div class="field" style="grid-column: 1 / -1;">
+            <label for="dishDescEn" class="field-label">Description (English - ixtiyoriy)</label>
+            <textarea id="dishDescEn" class="field-textarea" placeholder="Ingredients and serving notes in English..."></textarea>
+          </div>
+
+          <div class="field" style="grid-column: 1 / -1;">
+            <span class="field-label">Taom rasmi (Qidirish, Havola yoki Fayl yuklash → Base64)</span>
+            <div class="photo-search-panel">
+              <div class="photo-search-row">
+                <input
+                  type="text"
+                  id="adminPhotoSearchInput"
+                  class="field-input"
+                  placeholder="Rasm qidirish: Masalan, Osh, Manti, Lag'mon, Somsa, Shashlik..."
+                />
+                <button type="button" class="btn btn-primary btn-sm" id="adminPhotoSearchBtn" style="min-height: 44px; padding: 0 16px;">
+                  <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                  <span>Rasm qidirish</span>
+                </button>
+              </div>
+              <div class="photo-quick-tags" id="photoQuickTags">
+                <button type="button" class="photo-tag-btn" data-photo-q="Osh">Osh</button>
+                <button type="button" class="photo-tag-btn" data-photo-q="Shashlik">Shashlik</button>
+                <button type="button" class="photo-tag-btn" data-photo-q="Somsa">Somsa</button>
+                <button type="button" class="photo-tag-btn" data-photo-q="Manti">Manti</button>
+                <button type="button" class="photo-tag-btn" data-photo-q="Lagmon">Lag‘mon</button>
+                <button type="button" class="photo-tag-btn" data-photo-q="Shorva">Sho‘rva</button>
+                <button type="button" class="photo-tag-btn" data-photo-q="Qozon Kabob">Qozon Kabob</button>
+                <button type="button" class="photo-tag-btn" data-photo-q="Salat">Salat</button>
+                <button type="button" class="photo-tag-btn" data-photo-q="Choy">Choy</button>
+                <button type="button" class="photo-tag-btn" data-photo-q="Ayron">Ayron</button>
+                <button type="button" class="photo-tag-btn" data-photo-q="Kompot">Kompot</button>
+                <button type="button" class="photo-tag-btn" data-photo-q="Suv">Suv</button>
+                <button type="button" class="photo-tag-btn" data-photo-q="Cola">Cola</button>
+                <button type="button" class="photo-tag-btn" data-photo-q="Pepsi">Pepsi</button>
+                <button type="button" class="photo-tag-btn" data-photo-q="Fanta">Fanta</button>
+                <button type="button" class="photo-tag-btn" data-photo-q="Paxlava">Paxlava</button>
+              </div>
+              <div id="adminPhotoSearchStatus" class="field-hint" style="margin-top: 8px;">Istalgan taom nomini yozib qidiring — mos rasm chiqadi.</div>
+              <div class="photo-results-grid" id="adminPhotoResultsGrid"></div>
+            </div>
+
+            <div class="upload-mode-bar">
+              <button type="button" class="btn btn-secondary btn-sm" id="imgModeUrlBtn">Rasm havolasi (URL)</button>
+              <label class="btn btn-secondary btn-sm" style="cursor: pointer;">
+                <i class="fa-solid fa-upload" aria-hidden="true"></i>
+                <span>Kompyuterdan yuklash</span>
+                <input type="file" id="dishImageFileInput" accept="image/*" class="sr-only" />
+              </label>
+            </div>
+            <input type="text" id="dishImageUrl" class="field-input" placeholder="https://... yoki yuqoridan rasm tanlang" />
+            <div class="image-preview-box" id="dishImagePreviewBox">
+              <span>Rasm tanlanmagan</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border-hairline);">
+          <button type="button" class="btn btn-secondary" id="cancelDishFormBtn">Bekor qilish</button>
+          <button type="submit" class="btn btn-primary" id="saveDishSubmitBtn">Taomni saqlash</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- PRINTABLE TABLE TENT CONTAINER (VISIBLE ONLY WHEN PRINTING) -->
+  <div id="printTentContainer" class="print-only-tent" aria-hidden="true">
+    <div style="font-family: var(--font-display); font-size: 28pt; font-weight: 700; margin-bottom: 2mm;" id="printTentBrand">Samarqand Saroyi</div>
+    <div style="font-size: 10pt; font-weight: 700; color: #15803d; letter-spacing: 0.08em; margin-bottom: 4mm;">100% HALOL · SAMARQAND MILLIY TAOMLARI</div>
+    <div style="font-family: var(--font-mono); font-size: 13pt; font-weight: 600; color: #8b6d16; margin-bottom: 6mm;" id="printTentTable" hidden>1-STOL</div>
+    <div id="printTentQrMount" style="padding: 4mm; border: 1px solid #d1d5db; margin-bottom: 6mm;"></div>
+    <div style="font-size: 12pt; font-weight: 600; margin-bottom: 3mm;" id="printTentCta">Menyuni ko‘rish uchun telefon kamerasini yo‘naltiring</div>
+    <div style="font-family: var(--font-mono); font-size: 9.5pt; color: #4b5563;" id="printTentWifi"></div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast" id="toastEl" role="status" aria-live="polite">
+    <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+    <span id="toastMessage"></span>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // =======================================================================
+      // CONFIGURATION & SINGLE-ADMIN CREDENTIALS
+      // Default Admin PIN: 1234 (Faqat 1 ta yagona admin kirishi uchun)
+      // =======================================================================
+      const DEFAULT_ADMIN_PIN = '1234';
+      const STORAGE_KEYS = {
+        DISHES: 'samarqand_menu_dishes_v4',
+        SETTINGS: 'samarqand_menu_settings_v4',
+        LANG: 'samarqand_menu_lang_v4',
+        ADMIN_LOCK: 'samarqand_single_admin_lock_v4'
+      };
+
+      const SESSION_ID = (function () {
+        let sid = sessionStorage.getItem('samarqand_tab_session_id');
+        if (!sid) {
+          sid = 'adm-' + Math.random().toString(36).slice(2) + '-' + Date.now();
+          sessionStorage.setItem('samarqand_tab_session_id', sid);
+        }
+        return sid;
+      })();
+
+      const CATEGORIES = [
+        { id: 'All', uz: 'Barchasi', en: 'All' },
+        { id: 'Milliy Taomlar', uz: 'Milliy Taomlar', en: 'Samarkand Classics' },
+        { id: 'Shashliklar', uz: 'Shashliklar', en: 'Charcoal Kebabs' },
+        { id: 'Suyuq Taomlar', uz: 'Suyuq Taomlar', en: 'Soups' },
+        { id: 'Salatlar', uz: 'Salatlar', en: 'Salads' },
+        { id: 'Ichimliklar', uz: 'Ichimliklar', en: 'Drinks' },
+        { id: 'Shirinliklar', uz: 'Shirinliklar', en: 'Desserts' }
+      ];
+
+      const I18N = {
+        uz: {
+          kicker: 'Samarqand Milliy Taomlari · Raqamli Menyu',
+          halolSealText: '100% HALOL',
+          langMenuLabel: 'Til / Language',
+          hoursLabel: 'Ish vaqti',
+          addressLabel: 'Manzil',
+          wifiLabel: 'Mehmon Wi-Fi (Nusxalash uchun bosing)',
+          searchPlaceholder: 'Taom yoki ichimlik (masalan: Cola, Pepsi, Osh)...',
+          askWaiterNote: 'Buyurtma berish uchun ofitsiantga murojaat qiling',
+          adminLoginBtn: 'Admin Kirish',
+          closeBtn: 'Yopish',
+          adminAccessTitle: 'Yagona Admin Kirishi',
+          enterPinLabel: 'Restoran egasi PIN kodini kiriting',
+          defaultPinHint: 'Faqat bir kishi (bosh admin) kira oladi. Standart PIN: 1234',
+          cancelBtn: 'Bekor qilish',
+          unlockBtn: 'Panelni ochish',
+          dashboardTitle: 'Admin Boshqaruv Paneli',
+          singleAdminNote: 'Yagona Admin Sessiyasi Faol (Faqat 1 kishi)',
+          backToMenuBtn: 'Menyuga qaytish',
+          lockBtn: 'Chiqish va Qulflash',
+          tabDishes: 'Taomlar va Narxlar',
+          tabQr: 'QR-Kod va Chop etish',
+          tabSettings: 'Restoran, PIN va Zaxira',
+          addDishBtn: 'Yangi taom qo‘shish',
+          qrHeading: 'QR-Kod Generatori',
+          qrLead: 'Stollar uchun skanerlanadigan menyu QR-kodini yarating. Saytni xostingga joylagach (Netlify, Vercel, GitHub Pages) havolani kiriting.',
+          qrUrlLabel: 'Sayt havolasi (URL)',
+          qrUrlHint: 'Standart holatda joriy havola olinadi. Xostingga yuklagandan so‘ng o‘z domeningizni kiriting.',
+          qrTableLabel: 'Stol raqami (Ixtiyoriy)',
+          qrTableHint: 'Havolaga ?table=... qo‘shadi va stol kartasida raqamni ko‘rsatadi.',
+          downloadQrBtn: 'QR-kodni yuklab olish (PNG)',
+          printTentBtn: 'Stol kartasini chop etish',
+          copyLinkBtn: 'Havolani nusxalash',
+          tentPreviewLabel: 'Stol kartasi ko‘rinishi',
+          scanPromptText: 'Menyuni ko‘rish uchun kamerangizni yo‘naltiring',
+          venueSettingsHeading: 'Restoran va Yagona Admin PIN Sozlamalari',
+          venueSettingsLead: 'O‘zgarishlar darhol mijoz menyusi va QR stol kartasida yangilanadi.',
+          setBrandLabel: 'Restoran nomi',
+          setTaglineLabel: 'Qisqacha ta’rif',
+          setWifiSsidLabel: 'Wi-Fi nomi',
+          setWifiPassLabel: 'Wi-Fi paroli',
+          setAdminPinLabel: 'Yagona Admin PIN kodi (kamida 4 belgi)',
+          saveSettingsBtn: 'Ma’lumotlarni saqlash',
+          backupHeading: 'Ma’lumotlarni zaxiralash',
+          backupLead: 'Barcha taomlar, narxlar va sozlamalar brauzerning localStorage xotirasida avtomatik saqlanadi. JSON fayl ko‘rinishida zaxira nusxa oling.',
+          exportJsonBtn: 'JSON Zaxira yuklab olish',
+          importJsonBtn: 'JSON Zaxiradan tiklash',
+          resetSampleBtn: 'Standart Samarqand menyusiga qaytarish',
+          availableText: 'Bor',
+          unavailableText: 'Yo‘q',
+          noDishesTitle: 'Yo‘q — Mos taom yoki ichimlik topilmadi',
+          noDishesSub: 'Qidiruv so‘zini o‘zgartiring yoki boshqa bo‘limni tanlang.',
+          clearFiltersBtn: 'Barcha taomlarni ko‘rsatish',
+          showingCount: (n) => `${n} ta taom ko‘rsatilmoqda`,
+          tableLabel: (t) => `${t}-stol`,
+          wifiCopied: 'Wi-Fi paroli nusxalandi',
+          linkCopied: 'Menyu havolasi nusxalandi',
+          wrongPin: 'Noto‘g‘ri PIN kod. Standart PIN: 1234.',
+          singleLockWarning: 'Diqqat: Hozir boshqa oynada admin faol. PIN kodni tasdiqlasangiz, eski sessiya yopilib faqat ushbu oynadan kiriladi.',
+          badges: {
+            "Oshpaz tavsiyasi": "Oshpaz tavsiyasi",
+            "Samarqandcha": "Samarqandcha maxsus",
+            "Yangi": "Yangi",
+            "Achchiq": "Achchiq"
+          }
+        },
+        en: {
+          kicker: 'Samarkand National Kitchen · Digital Menu',
+          halolSealText: '100% HALAL',
+          langMenuLabel: 'Language / Til',
+          hoursLabel: 'Working Hours',
+          addressLabel: 'Address',
+          wifiLabel: 'Guest Wi-Fi (Tap password to copy)',
+          searchPlaceholder: 'Search dish or drink (e.g. Cola, Pepsi, Plov)...',
+          askWaiterNote: 'Please ask your server to place an order',
+          adminLoginBtn: 'Admin Login',
+          closeBtn: 'Close',
+          adminAccessTitle: 'Single Owner Admin Access',
+          enterPinLabel: 'Enter Restaurant Owner PIN',
+          defaultPinHint: 'Single-admin lock enabled. Default demo PIN: 1234',
+          cancelBtn: 'Cancel',
+          unlockBtn: 'Unlock Dashboard',
+          dashboardTitle: 'Menu & Price Management',
+          singleAdminNote: 'Single Admin Session Active (1 Owner Only)',
+          backToMenuBtn: 'Back to Menu',
+          lockBtn: 'Lock & Sign Out',
+          tabDishes: 'Dishes & Pricing',
+          tabQr: 'QR Generator & Print',
+          tabSettings: 'Restaurant, PIN & Backup',
+          addDishBtn: 'Add New Dish',
+          qrHeading: 'QR Code Generator',
+          qrLead: 'Generate a scannable menu QR code for your restaurant tables. Enter your hosted website link (Netlify, Vercel, GitHub Pages) or use the current URL.',
+          qrUrlLabel: 'Hosted Menu URL',
+          qrUrlHint: 'Automatically uses the current URL by default. Replace with your live domain after hosting.',
+          qrTableLabel: 'Table Number / Label (Optional)',
+          qrTableHint: 'Appends ?table=... to the link and prints the table number on the tent card.',
+          downloadQrBtn: 'Download QR Code (PNG)',
+          printTentBtn: 'Print Table Tent',
+          copyLinkBtn: 'Copy Link',
+          tentPreviewLabel: 'Table Tent Preview',
+          scanPromptText: 'Scan camera to view digital menu',
+          venueSettingsHeading: 'Restaurant & Single-Admin PIN Settings',
+          venueSettingsLead: 'Changes appear immediately on the customer menu header and printable QR table tent.',
+          setBrandLabel: 'Restaurant Name',
+          setTaglineLabel: 'Tagline / Subtitle',
+          setWifiSsidLabel: 'Wi-Fi Network Name',
+          setWifiPassLabel: 'Wi-Fi Password',
+          setAdminPinLabel: 'Single Admin PIN (4+ chars)',
+          saveSettingsBtn: 'Save Restaurant Info',
+          backupHeading: 'Data Backup & Restore',
+          backupLead: 'All dishes, prices, and settings save automatically in your browser localStorage. Export a JSON backup anytime.',
+          exportJsonBtn: 'Export JSON Backup',
+          importJsonBtn: 'Import JSON Backup',
+          resetSampleBtn: 'Reset to Samarkand Sample Menu',
+          availableText: 'Available',
+          unavailableText: 'Unavailable',
+          noDishesTitle: 'Unavailable — No matching items',
+          noDishesSub: 'Try clearing your search filter or choosing another category.',
+          clearFiltersBtn: 'Show All Dishes',
+          showingCount: (n) => `Showing ${n} ${n === 1 ? 'item' : 'items'}`,
+          tableLabel: (t) => `Table ${t}`,
+          wifiCopied: 'Wi-Fi password copied',
+          linkCopied: 'Menu link copied',
+          wrongPin: 'Incorrect PIN. Default PIN is 1234.',
+          singleLockWarning: 'Notice: Another admin session is active in another tab. Unlocking here will close the previous session.',
+          badges: {
+            "Oshpaz tavsiyasi": "Chef's Special",
+            "Samarqandcha": "Samarkand Special",
+            "Yangi": "New",
+            "Achchiq": "Spicy"
+          }
+        }
+      };
+
+      const DEFAULT_SETTINGS = {
+        brandName: 'Samarqand Saroyi',
+        tagline: 'Registon an’analari asosida tayyorlangan asl Samarqand oshi, ko‘mir kaboblari va milliy taomlar — barchasi 100% halol mahsulotlardan.',
+        hours: '08:30 – 23:30',
+        address: 'Registon ko‘chasi 24, Samarqand',
+        wifiSsid: 'SAMARQAND_HALOL',
+        wifiPass: 'Registon2026',
+        adminPin: DEFAULT_ADMIN_PIN
+      };
+
+      const DEFAULT_DISHES = [
+        {
+          id: 'smq-osh-1',
+          titleUz: "Samarqand Zig‘ir Oshi",
+          titleEn: 'Samarkand Royal Zigir Plov',
+          category: 'Milliy Taomlar',
+          price: 55000,
+          descUz: "An’anaviy Samarqand uslubida qatlamlab damlangan zira va zig‘ir yog‘li osh: yumshoq qo‘y go‘shti, sariq sabzi, no‘xat, butun sarimsoq va anor donalari bilan tortiladi.",
+          descEn: 'Layered Samarkand plov steamed in flaxseed oil with tender braised lamb, golden carrots, chickpeas, roasted garlic bulb, and fresh pomegranate seeds.',
+          image: '/src/assets/images/dish_plov_royal_1794994228406.jpg',
+          badge: 'Oshpaz tavsiyasi',
+          halol: true,
+          available: true
+        },
+        {
+          id: 'smq-qozon-2',
+          titleUz: 'Samarqand Qozon Kabob',
+          titleEn: 'Samarkand Qozon Kabob',
+          category: 'Milliy Taomlar',
+          price: 85000,
+          descUz: "Qozonda tillarang bo‘lib qovurilgan sarxil qo‘y qovurg‘alari, butun yosh kartoshka, sumax sepilgan qizil piyoz va ko‘katlar bilan dasturxonga tortiladi.",
+          descEn: 'Crispy golden braised lamb ribs and whole baby potatoes cooked in a cast-iron kazan, garnished with sumac red onions and fresh coriander.',
+          image: '/src/assets/images/dish_uzbek_qozonkabob_1794994765355.jpg',
+          badge: 'Samarqandcha',
+          halol: true,
+          available: true
+        },
+        {
+          id: 'smq-somsa-3',
+          titleUz: 'Tandir Somsa va Qo‘l Manti',
+          titleEn: 'Tandoor Somsa & Steamed Manti',
+          category: 'Milliy Taomlar',
+          price: 38000,
+          descUz: "Saksovul cho‘g‘li tandirda yopilgan sedana sepilgan qatlama somsa va mayda to‘g‘ralgan go‘shtli bug‘da pishgan manti qaymoq hamda ko‘katlar bilan.",
+          descEn: 'Flaky sesame-crusted tandoor somsa pastries paired with hand-folded steamed lamb manti dumplings, served with farm kajmak and herbs.',
+          image: '/src/assets/images/dish_uzbek_somsa_manti_1794994764839.jpg',
+          badge: 'Yangi',
+          halol: true,
+          available: true
+        },
+        {
+          id: 'smq-shashlik-4',
+          titleUz: "Ko‘mir Cho‘g‘ida Shashlik Assorti",
+          titleEn: 'Charcoal Lamb & Beef Shashlik',
+          category: 'Shashliklar',
+          price: 72000,
+          descUz: "Saksovul ko‘mirida pishirilgan yumshoq qo‘y va mol go‘shti sixlari, gril pomidor, sirka-sumaxli piyoz va issiq Samarqand noni bo‘laklari bilan.",
+          descEn: 'Twin skewers of marinated lamb and beef grilled over saxaul embers, accompanied by sumac onions, charred tomato, and warm tandoor flatbread.',
+          image: '/src/assets/images/dish_shashlik_assorti_1794994228197.jpg',
+          badge: 'Achchiq',
+          halol: true,
+          available: true
+        },
+        {
+          id: 'smq-shorva-5',
+          titleUz: "Ko‘za Sho‘rva (Qo‘y go‘shtli)",
+          titleEn: 'Traditional Samarkand Lamb Shorva',
+          category: 'Suyuq Taomlar',
+          price: 42000,
+          descUz: "Past olovda uzoq qaynatilgan tiniq bulyon, suyaksiz qo‘y go‘shti, no‘xat, shirin sabzi, butun kartoshka, yangi shivit va Samarqand patiri bilan.",
+          descEn: 'Slow-simmered clear aromatic lamb broth with chickpeas, whole potato, sweet carrots, fresh dill, and warm sesame flatbread.',
+          image: '/src/assets/images/dish_uzbek_shorva_1794994765522.jpg',
+          badge: '',
+          halol: true,
+          available: true
+        },
+        {
+          id: 'smq-achichuk-6',
+          titleUz: 'Rayhonli Achichuk Salati',
+          titleEn: 'Heirloom Achichuk & Basil Salad',
+          category: 'Salatlar',
+          price: 24000,
+          descUz: "Osh va kaboblar yoniga juda mos keluvchi pishgan shirin pomidorlar, yupqa parrak qizil piyoz, yangi rayhon, rukkola va tabiiy zaytun moyi bilan.",
+          descEn: 'Sun-ripened heirloom tomatoes sliced thin with sweet red onion rings, purple basil, baby greens, extra virgin olive oil, and flaky sea salt.',
+          image: '/src/assets/images/dish_salad_achichuk_1794994229095.jpg',
+          badge: '',
+          halol: true,
+          available: true
+        },
+        {
+          id: 'smq-kokchoy-7',
+          titleUz: 'Samarqandcha Ko‘k Choy (Choynak)',
+          titleEn: 'Samarkand Green Tea (Teapot)',
+          category: 'Ichimliklar',
+          price: 10000,
+          descUz: "Paxtagul choynakda damlangan 95-raqamli xushbo‘y ko‘k choy, yangi limon tilimi va oq navvot bilan tortiladi.",
+          descEn: 'Fragrant Uzbek green tea brewed in a traditional pakhtagul porcelain teapot, served with fresh lemon slices and crystal navvot.',
+          image: '/src/assets/images/dish_uzbek_greentea_1794997438520.jpg',
+          badge: 'Samarqandcha',
+          halol: true,
+          available: true
+        },
+        {
+          id: 'smq-ayron-8',
+          titleUz: 'Muzdek Rayhonli Ayron (Chalop)',
+          titleEn: 'Chilled Uzbek Ayron & Herbs',
+          category: 'Ichimliklar',
+          price: 14000,
+          descUz: "Osh va kaboblar bilan zo‘r ketadigan uy qatig‘idan ko‘pirtirilgan salqin ayron — yangi shivit, qora rayhon va muz bo‘laklari bilan.",
+          descEn: 'Traditional frothy chilled Uzbek yogurt drink whipped with fresh dill, purple basil, mountain salt, and crushed ice.',
+          image: '/src/assets/images/dish_uzbek_ayron_1794997438858.jpg',
+          badge: 'Oshpaz tavsiyasi',
+          halol: true,
+          available: true
+        },
+        {
+          id: 'smq-kompot-9',
+          titleUz: 'Uy Olcha va O‘rik Kompoti',
+          titleEn: 'Homemade Cherry & Apricot Compote',
+          category: 'Ichimliklar',
+          price: 18000,
+          descUz: "Samarqand bog‘laridan terilgan qora olcha, quruq o‘rik (turshak) va yalpizdan qaynatilgan tabiiy salqin sharbat-kompot.",
+          descEn: 'Chilled homemade Uzbek compote brewed from sour cherries, dried golden apricots, and fresh mint.',
+          image: '/src/assets/images/dish_uzbek_kompot_1794997439953.jpg',
+          badge: 'Yangi',
+          halol: true,
+          available: true
+        },
+        {
+          id: 'smq-anor-10',
+          titleUz: 'Anorli Limonad va Ziravorli Choy',
+          titleEn: 'Pomegranate Elixir & Spiced Tea',
+          category: 'Ichimliklar',
+          price: 25000,
+          descUz: "Yangi siqilgan Bog‘izog‘on anori va yalpizli muzdek limonad yoki dolchin hamda badyon qo‘shilgan xushbo‘y qora choy.",
+          descEn: 'Cold-pressed ruby pomegranate lemonade shaken with fresh mint, or hot spiced black tea with cinnamon and star anise.',
+          image: '/src/assets/images/dish_tea_pomegranate_1794994229732.jpg',
+          badge: '',
+          halol: true,
+          available: true
+        },
+        {
+          id: 'smq-chortoq-11',
+          titleUz: 'Chortoq Mineral Suv (Gazli / Gazsiz)',
+          titleEn: 'Chortoq Mineral Water (0.5L)',
+          category: 'Ichimliklar',
+          price: 10000,
+          descUz: "O‘zbekistonning shifobaxsh tog‘ buloqlaridan olingan muzdek Chortoq mineral suvi, laym va yalpiz yaprog‘i bilan.",
+          descEn: 'Ice-cold Uzbek Chortoq mineral spring water served in glass bottle with lime wedge and fresh mint.',
+          image: '/src/assets/images/dish_uzbek_mineral_1794997439938.jpg',
+          badge: '',
+          halol: true,
+          available: true
+        },
+        {
+          id: 'smq-fanta-12',
+          titleUz: 'Fanta Apelsin (Muzdek 0.25L)',
+          titleEn: 'Fanta Orange Chilled (0.25L)',
+          category: 'Ichimliklar',
+          price: 12000,
+          descUz: "Muz bo‘laklari va yangi apelsin tilimi bilan tortiladigan gazlangan muzdek Fanta ichimligi.",
+          descEn: 'Chilled sparkling Fanta orange citrus soda served over ice with a fresh orange wheel.',
+          image: '/src/assets/images/dish_uzbek_fanta_1794997440115.jpg',
+          badge: '',
+          halol: true,
+          available: true
+        },
+        {
+          id: 'smq-cola-13',
+          titleUz: 'Coca-Cola (Muzdek shisha 0.25L)',
+          titleEn: 'Coca-Cola Chilled Glass Bottle',
+          category: 'Ichimliklar',
+          price: 12000,
+          descUz: "Muz bo‘laklari va yangi laym tilimi bilan tortiladigan klassik muzdek Coca-Cola (kola) ichimligi.",
+          descEn: 'Classic chilled Coca-Cola served in glass bottle with crystal ice cubes and fresh lime slice.',
+          image: '/src/assets/images/dish_drink_cola_1794996750194.jpg',
+          badge: '',
+          halol: true,
+          available: true
+        },
+        {
+          id: 'smq-pepsi-14',
+          titleUz: 'Pepsi (Muzdek shisha 0.25L)',
+          titleEn: 'Pepsi Chilled Glass Bottle',
+          category: 'Ichimliklar',
+          price: 12000,
+          descUz: "Limon va muz bilan tortiladigan tetiklantiruvchi klassik Pepsi ichimligi.",
+          descEn: 'Refreshing chilled Pepsi served over ice spheres with a fresh lemon slice.',
+          image: '/src/assets/images/dish_drink_pepsi_1794996751535.jpg',
+          badge: '',
+          halol: true,
+          available: true
+        },
+        {
+          id: 'smq-paxlava-10',
+          titleUz: 'Asalli va Pistali Samarqand Paxlavasi',
+          titleEn: 'Honey & Pistachio Baklava',
+          category: 'Shirinliklar',
+          price: 36000,
+          descUz: "Qirq qavatli yupqa xamir, tog‘ asali va maydalangan yashil pista mag‘zi bilan pishirilgan an’anaviy sharqona shirinlik.",
+          descEn: 'Forty crisp phyllo layers baked with clarified butter, wildflower mountain honey, and crushed green pistachios.',
+          image: '/src/assets/images/dish_dessert_baklava_1794994230313.jpg',
+          badge: 'Oshpaz tavsiyasi',
+          halol: true,
+          available: true
+        }
+      ];
+
+      // =======================================================================
+      // APPLICATION STATE
+      // =======================================================================
+      let state = {
+        lang: loadStorage(STORAGE_KEYS.LANG, 'uz'),
+        activeCategory: 'All',
+        searchQuery: '',
+        dishes: loadStorage(STORAGE_KEYS.DISHES, DEFAULT_DISHES),
+        settings: Object.assign({}, DEFAULT_SETTINGS, loadStorage(STORAGE_KEYS.SETTINGS, {})),
+        isAdminOpen: false,
+        activeAdminTab: 'dishes',
+        adminSearchQuery: '',
+        pendingDeleteId: null,
+        qrInstance: null,
+        printQrInstance: null
+      };
+
+      // =======================================================================
+      // STORAGE & HELPERS
+      // =======================================================================
+      function loadStorage(key, fallback) {
+        try {
+          const raw = localStorage.getItem(key);
+          if (!raw) return cloneData(fallback);
+          return JSON.parse(raw);
+        } catch (err) {
+          return cloneData(fallback);
+        }
+      }
+
+      function saveStorage(key, value) {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+        } catch (err) {
+          showToast('Xotira chegarasiga yetdi. Kichikroq rasm yuklang.');
+        }
+      }
+
+      function cloneData(val) {
+        return JSON.parse(JSON.stringify(val));
+      }
+
+      function formatUZS(num) {
+        const clean = Number(num) || 0;
+        return clean.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + " so‘m";
+      }
+
+      function escapeHtml(str) {
+        return String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function getCategoryLabel(catId) {
+        const found = CATEGORIES.find((c) => c.id === catId);
+        if (!found) return catId;
+        return state.lang === 'uz' ? found.uz : found.en;
+      }
+
+      function getDishTitle(dish) {
+        if (state.lang === 'en' && dish.titleEn && dish.titleEn.trim()) {
+          return dish.titleEn;
+        }
+        return dish.titleUz || dish.titleEn;
+      }
+
+      function getDishDesc(dish) {
+        if (state.lang === 'en' && dish.descEn && dish.descEn.trim()) {
+          return dish.descEn;
+        }
+        return dish.descUz || dish.descEn;
+      }
+
+      let toastTimer = null;
+      function showToast(msg) {
+        const el = document.getElementById('toastEl');
+        const msgEl = document.getElementById('toastMessage');
+        msgEl.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          el.classList.remove('show');
+        }, 2600);
+      }
+
+      // =======================================================================
+      // SINGLE-ADMIN LOCK LOGIC (Faqat 1 kishi kira olishi uchun)
+      // =======================================================================
+      function getActiveAdminLock() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEYS.ADMIN_LOCK);
+          if (!raw) return null;
+          const lock = JSON.parse(raw);
+          // Expire stale lock after 4 hours of inactivity
+          if (Date.now() - (lock.ts || 0) > 4 * 60 * 60 * 1000) {
+            localStorage.removeItem(STORAGE_KEYS.ADMIN_LOCK);
+            return null;
+          }
+          return lock;
+        } catch (err) {
+          return null;
+        }
+      }
+
+      function acquireSingleAdminLock() {
+        localStorage.setItem(STORAGE_KEYS.ADMIN_LOCK, JSON.stringify({
+          sessionId: SESSION_ID,
+          ts: Date.now()
+        }));
+      }
+
+      function releaseSingleAdminLock() {
+        const lock = getActiveAdminLock();
+        if (lock && lock.sessionId === SESSION_ID) {
+          localStorage.removeItem(STORAGE_KEYS.ADMIN_LOCK);
+        }
+      }
+
+      // Keep lock synced across tabs: if another tab claims the single admin session, lock this one
+      window.addEventListener('storage', (e) => {
+        if (e.key === STORAGE_KEYS.ADMIN_LOCK && state.isAdminOpen) {
+          const lock = getActiveAdminLock();
+          if (!lock || lock.sessionId !== SESSION_ID) {
+            state.isAdminOpen = false;
+            dom.adminDashboard.classList.remove('open');
+            document.body.style.overflow = '';
+            showToast('Admin sessiyasi boshqa oynada ochildi.');
+          }
+        }
+      });
+
+      // =======================================================================
+      // DOM ELEMENTS
+      // =======================================================================
+      const dom = {
+        navBrandName: document.getElementById('navBrandName'),
+        heroTitle: document.getElementById('heroTitle'),
+        heroSubtitle: document.getElementById('heroSubtitle'),
+        heroKicker: document.getElementById('heroKicker'),
+        venueHours: document.getElementById('venueHours'),
+        venueAddress: document.getElementById('venueAddress'),
+        venueWifiSsid: document.getElementById('venueWifiSsid'),
+        venueWifiPass: document.getElementById('venueWifiPass'),
+        footerBrandName: document.getElementById('footerBrandName'),
+        footerAddress: document.getElementById('footerAddress'),
+        footerYear: document.getElementById('footerYear'),
+        tableBannerText: document.getElementById('tableBannerText'),
+        categoryTabs: document.getElementById('categoryTabs'),
+        menuSearchInput: document.getElementById('menuSearchInput'),
+        searchClearBtn: document.getElementById('searchClearBtn'),
+        resultsCountText: document.getElementById('resultsCountText'),
+        menuGrid: document.getElementById('menuGrid'),
+        dishDetailModal: document.getElementById('dishDetailModal'),
+        adminLoginModal: document.getElementById('adminLoginModal'),
+        adminDashboard: document.getElementById('adminDashboard'),
+        dishFormModal: document.getElementById('dishFormModal')
+      };
+
+      // =======================================================================
+      // RENDERING: CUSTOMER MENU
+      // =======================================================================
+      function applyTranslations() {
+        const t = I18N[state.lang];
+        document.documentElement.lang = state.lang;
+        dom.heroKicker.textContent = t.kicker;
+        dom.menuSearchInput.placeholder = t.searchPlaceholder;
+
+        document.querySelectorAll('[data-i18n]').forEach((el) => {
+          const key = el.getAttribute('data-i18n');
+          if (typeof t[key] === 'string') {
+            el.textContent = t[key];
+          }
+        });
+
+        document.getElementById('langBtnUz').classList.toggle('active', state.lang === 'uz');
+        document.getElementById('langBtnEn').classList.toggle('active', state.lang === 'en');
+
+        const params = new URLSearchParams(window.location.search);
+        const tableParam = params.get('table');
+        if (tableParam && tableParam.trim()) {
+          dom.tableBannerText.textContent = t.tableLabel(tableParam.trim());
+          dom.tableBannerText.hidden = false;
+        } else {
+          dom.tableBannerText.hidden = true;
+        }
+      }
+
+      function renderVenueInfo() {
+        const s = state.settings;
+        dom.navBrandName.textContent = s.brandName;
+        dom.heroTitle.textContent = s.brandName;
+        dom.heroSubtitle.textContent = s.tagline;
+        dom.venueHours.textContent = s.hours;
+        dom.venueAddress.textContent = s.address;
+        dom.venueWifiSsid.textContent = s.wifiSsid;
+        dom.venueWifiPass.textContent = s.wifiPass;
+        dom.footerBrandName.textContent = s.brandName;
+        dom.footerAddress.textContent = s.address;
+        dom.footerYear.textContent = new Date().getFullYear();
+
+        document.getElementById('qrTentBrandName').textContent = s.brandName;
+        document.getElementById('qrTentWifiInfo').textContent = `Wi-Fi: ${s.wifiSsid} · ${s.wifiPass}`;
+        document.getElementById('printTentBrand').textContent = s.brandName;
+        document.getElementById('printTentWifi').textContent = `Wi-Fi: ${s.wifiSsid}  |  Parol: ${s.wifiPass}`;
+      }
+
+      function renderCategoryTabs() {
+        dom.categoryTabs.innerHTML = CATEGORIES.map((cat) => {
+          const label = state.lang === 'uz' ? cat.uz : cat.en;
+          const active = state.activeCategory === cat.id;
+          return `
+            <button
+              type="button"
+              role="tab"
+              aria-selected="${active}"
+              class="cat-tab ${active ? 'active' : ''}"
+              data-category="${escapeHtml(cat.id)}"
+            >${escapeHtml(label)}</button>
+          `;
+        }).join('');
+      }
+
+      function normalizeSearchText(str) {
+        return String(str || '')
+          .toLowerCase()
+          .replace(/['‘’`ʻ]/g, '')
+          .replace(/oʻ|o‘|o'/g, 'o')
+          .replace(/gʻ|g‘|g'/g, 'g')
+          .trim();
+      }
+
+      function getFilteredDishes() {
+        const q = normalizeSearchText(state.searchQuery);
+        return state.dishes.filter((dish) => {
+          const matchesCat = state.activeCategory === 'All' || dish.category === state.activeCategory;
+          if (!matchesCat) return false;
+          if (!q) return true;
+          const haystack = normalizeSearchText([
+            dish.titleUz,
+            dish.titleEn,
+            dish.descUz,
+            dish.descEn,
+            dish.category,
+            dish.badge
+          ].join(' '));
+          return haystack.includes(q);
+        });
+      }
+
+      function renderSearchPhotoDropdown() {
+        const dropdown = document.getElementById('searchPhotoDropdown');
+        const rawQ = state.searchQuery.trim();
+        if (!rawQ) {
+          dropdown.classList.remove('open');
+          dropdown.innerHTML = '';
+          return;
+        }
+
+        const t = I18N[state.lang];
+        const q = normalizeSearchText(rawQ);
+        const matches = state.dishes.filter((dish) => {
+          const haystack = normalizeSearchText([
+            dish.titleUz,
+            dish.titleEn,
+            dish.descUz,
+            dish.descEn,
+            dish.category
+          ].join(' '));
+          return haystack.includes(q);
+        }).slice(0, 6);
+
+        if (matches.length === 0) {
+          dropdown.innerHTML = `
+            <div style="padding: 12px 14px; font-size: 0.86rem; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+              <span style="color: var(--text-secondary);">"${escapeHtml(rawQ)}"</span>
+              <span style="color: var(--status-spicy); font-weight: 700;">${escapeHtml(t.unavailableText)}</span>
+            </div>
+          `;
+          dropdown.classList.add('open');
+          return;
+        }
+
+        dropdown.innerHTML = matches.map((dish) => {
+          const title = getDishTitle(dish);
+          const availText = dish.available ? t.availableText : t.unavailableText;
+          const availColor = dish.available ? '#5ee0a8' : '#ff8e78';
+          return `
+            <button type="button" class="search-drop-item" data-drop-dish-id="${escapeHtml(dish.id)}">
+              ${dish.image ? `<img class="search-drop-thumb" src="${escapeHtml(dish.image)}" alt="${escapeHtml(title)}" referrerpolicy="no-referrer" />` : `<div class="search-drop-thumb" style="display:grid;place-items:center;color:var(--accent-gold);"><i class="fa-solid fa-utensils"></i></div>`}
+              <div class="search-drop-info">
+                <div class="search-drop-title">${escapeHtml(title)}</div>
+                <div class="search-drop-sub">
+                  <span style="color: ${availColor}; font-weight: 700;">${escapeHtml(availText)}</span>
+                  <span aria-hidden="true">·</span>
+                  <span>${escapeHtml(getCategoryLabel(dish.category))}</span>
+                </div>
+              </div>
+              <span class="search-drop-price">${escapeHtml(formatUZS(dish.price))}</span>
+            </button>
+          `;
+        }).join('');
+        dropdown.classList.add('open');
+      }
+
+      function getStickerClass(badge) {
+        if (badge === 'Achchiq') return 'sticker-spicy';
+        if (badge === 'Yangi') return 'sticker-new';
+        if (badge === 'Samarqandcha') return 'sticker-samarkand';
+        return 'sticker-chef';
+      }
+
+      function getStickerIcon(badge) {
+        if (badge === 'Achchiq') return 'fa-pepper-hot';
+        if (badge === 'Yangi') return 'fa-star';
+        if (badge === 'Samarqandcha') return 'fa-landmark';
+        return 'fa-award';
+      }
+
+      function renderMenuGrid() {
+        const t = I18N[state.lang];
+        const items = getFilteredDishes();
+        dom.resultsCountText.textContent = t.showingCount(items.length);
+
+        if (items.length === 0) {
+          dom.menuGrid.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1;">
+              <i class="fa-solid fa-bowl-food" aria-hidden="true"></i>
+              <h3>${escapeHtml(t.noDishesTitle)}</h3>
+              <p>${escapeHtml(t.noDishesSub)}</p>
+              <button type="button" class="btn btn-secondary" id="resetFiltersBtn">${escapeHtml(t.clearFiltersBtn)}</button>
+            </div>
+          `;
+          const resetBtn = document.getElementById('resetFiltersBtn');
+          if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+              state.activeCategory = 'All';
+              state.searchQuery = '';
+              dom.menuSearchInput.value = '';
+              dom.searchClearBtn.classList.remove('visible');
+              renderCategoryTabs();
+              renderMenuGrid();
+            });
+          }
+          return;
+        }
+
+        dom.menuGrid.innerHTML = items.map((dish) => {
+          const title = getDishTitle(dish);
+          const desc = getDishDesc(dish);
+          const catLabel = getCategoryLabel(dish.category);
+          const badgeLabel = dish.badge ? (t.badges[dish.badge] || dish.badge) : '';
+          const unavail = !dish.available;
+          const isHalol = dish.halol !== false;
+
+          return `
+            <button type="button" class="dish-card ${unavail ? 'is-unavailable' : ''}" data-dish-id="${escapeHtml(dish.id)}">
+              <div class="dish-media">
+                ${dish.image ? `
+                  <img
+                    class="dish-img"
+                    src="${escapeHtml(dish.image)}"
+                    alt="${escapeHtml(title)}"
+                    loading="lazy"
+                    referrerpolicy="no-referrer"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                  />
+                  <div class="dish-img-fallback" style="display: none;">
+                    <i class="fa-solid fa-utensils fa-xl" aria-hidden="true"></i>
+                    <span>${escapeHtml(title)}</span>
+                  </div>
+                ` : `
+                  <div class="dish-img-fallback">
+                    <i class="fa-solid fa-utensils fa-xl" aria-hidden="true"></i>
+                    <span>${escapeHtml(title)}</span>
+                  </div>
+                `}
+                <div class="dish-scrim"></div>
+
+                ${isHalol ? `
+                  <span class="dish-halol-corner">
+                    <i class="fa-solid fa-moon" style="font-size: 0.68rem;" aria-hidden="true"></i>
+                    <span>HALOL</span>
+                  </span>
+                ` : ''}
+
+                ${badgeLabel ? `
+                  <span class="dish-sticker-corner ${getStickerClass(dish.badge)}">
+                    <i class="fa-solid ${getStickerIcon(dish.badge)}" style="font-size: 0.7rem;" aria-hidden="true"></i>
+                    <span>${escapeHtml(badgeLabel)}</span>
+                  </span>
+                ` : ''}
+              </div>
+
+              <div class="dish-body">
+                <div class="dish-kicker-row">
+                  <span>${escapeHtml(catLabel)}</span>
+                  ${isHalol ? `<span aria-hidden="true">·</span><span style="color: #5ee0a8; font-weight: 600;">Halol</span>` : ''}
+                </div>
+                <h3 class="dish-title">${escapeHtml(title)}</h3>
+                <p class="dish-desc">${escapeHtml(desc)}</p>
+                <div class="dish-footer">
+                  <span class="dish-price">${escapeHtml(formatUZS(dish.price))}</span>
+                  <span class="dish-status-note ${unavail ? 'unavailable' : ''}" style="color: ${unavail ? 'var(--status-spicy)' : '#5ee0a8'}; font-weight: 700;">
+                    ${unavail ? escapeHtml(t.unavailableText) : escapeHtml(t.availableText)}
+                  </span>
+                </div>
+              </div>
+            </button>
+          `;
+        }).join('');
+      }
+
+      // =======================================================================
+      // DISH DETAIL MODAL (VIEW-ONLY)
+      // =======================================================================
+      function openDishDetail(dishId) {
+        const dish = state.dishes.find((d) => d.id === dishId);
+        if (!dish) return;
+        const t = I18N[state.lang];
+        const title = getDishTitle(dish);
+        const desc = getDishDesc(dish);
+        const catLabel = getCategoryLabel(dish.category);
+        const badgeLabel = dish.badge ? (t.badges[dish.badge] || dish.badge) : '';
+
+        const imgEl = document.getElementById('detailModalImg');
+        const fallbackEl = document.getElementById('detailImgFallback');
+        document.getElementById('detailFallbackTitle').textContent = title;
+
+        if (dish.image) {
+          imgEl.style.display = 'block';
+          fallbackEl.style.display = 'none';
+          imgEl.src = dish.image;
+          imgEl.alt = title;
+          imgEl.onerror = function () {
+            imgEl.style.display = 'none';
+            fallbackEl.style.display = 'flex';
+          };
+        } else {
+          imgEl.style.display = 'none';
+          fallbackEl.style.display = 'flex';
+        }
+
+        const metaParts = [escapeHtml(catLabel)];
+        if (dish.halol !== false) {
+          metaParts.push('<span style="color:#5ee0a8;font-weight:700;">100% HALOL</span>');
+        }
+        if (badgeLabel) {
+          metaParts.push(`<span style="color:var(--accent-gold-bright);font-weight:600;">${escapeHtml(badgeLabel)}</span>`);
+        }
+        if (!dish.available) {
+          metaParts.push(`<span class="dish-status-note unavailable">${escapeHtml(t.unavailableText)}</span>`);
+        }
+
+        document.getElementById('detailMetaLine').innerHTML = metaParts.join('<span aria-hidden="true">·</span>');
+        document.getElementById('detailModalTitle').textContent = title;
+        document.getElementById('detailModalDesc').textContent = desc;
+        document.getElementById('detailModalPrice').textContent = formatUZS(dish.price);
+
+        dom.dishDetailModal.classList.add('open');
+      }
+
+      function closeDishDetail() {
+        dom.dishDetailModal.classList.remove('open');
+      }
+
+      // =======================================================================
+      // SINGLE-ADMIN LOGIN & DASHBOARD
+      // =======================================================================
+      function openLoginModal() {
+        const lock = getActiveAdminLock();
+        // If current tab already holds the active lock, reopen directly
+        if (lock && lock.sessionId === SESSION_ID) {
+          openAdminDashboard();
+          return;
+        }
+
+        document.getElementById('loginErrorBanner').classList.remove('visible');
+        const lockBanner = document.getElementById('singleAdminLockBanner');
+        if (lock && lock.sessionId !== SESSION_ID) {
+          lockBanner.textContent = I18N[state.lang].singleLockWarning;
+          lockBanner.classList.add('visible');
+        } else {
+          lockBanner.classList.remove('visible');
+        }
+
+        document.getElementById('adminPinInput').value = '';
+        dom.adminLoginModal.classList.add('open');
+        setTimeout(() => document.getElementById('adminPinInput').focus(), 60);
+      }
+
+      function closeLoginModal() {
+        dom.adminLoginModal.classList.remove('open');
+      }
+
+      function openAdminDashboard() {
+        acquireSingleAdminLock();
+        state.isAdminOpen = true;
+        dom.adminDashboard.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        renderAdminStats();
+        renderAdminDishes();
+        populateSettingsForm();
+        initQrGeneratorDefaults();
+        generateQrCodes();
+      }
+
+      function closeAdminDashboard(releaseLock) {
+        if (releaseLock) {
+          releaseSingleAdminLock();
+        }
+        state.isAdminOpen = false;
+        dom.adminDashboard.classList.remove('open');
+        document.body.style.overflow = '';
+        renderCategoryTabs();
+        renderMenuGrid();
+        renderVenueInfo();
+      }
+
+      function switchAdminTab(tabName) {
+        state.activeAdminTab = tabName;
+        document.querySelectorAll('.admin-tab-btn').forEach((btn) => {
+          btn.classList.toggle('active', btn.getAttribute('data-admin-tab') === tabName);
+        });
+        document.getElementById('adminPaneDishes').classList.toggle('active', tabName === 'dishes');
+        document.getElementById('adminPaneQr').classList.toggle('active', tabName === 'qr');
+        document.getElementById('adminPaneSettings').classList.toggle('active', tabName === 'settings');
+
+        if (tabName === 'qr') {
+          generateQrCodes();
+        }
+      }
+
+      function renderAdminStats() {
+        const total = state.dishes.length;
+        const available = state.dishes.filter((d) => d.available).length;
+        const unavailable = total - available;
+
+        document.getElementById('adminStatsStrip').innerHTML = `
+          <div class="stat-card">
+            <div class="stat-label">Jami taomlar</div>
+            <div class="stat-value">${total}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Mavjud taomlar</div>
+            <div class="stat-value" style="color: var(--status-new);">${available}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Vaqtincha tugagan</div>
+            <div class="stat-value" style="color: var(--status-spicy);">${unavailable}</div>
+          </div>
+        `;
+      }
+
+      function renderAdminDishes() {
+        const listEl = document.getElementById('adminDishList');
+        const q = state.adminSearchQuery.trim().toLowerCase();
+        const filtered = state.dishes.filter((d) => {
+          if (!q) return true;
+          return `${d.titleUz} ${d.titleEn} ${d.category} ${d.descUz}`.toLowerCase().includes(q);
+        });
+
+        if (filtered.length === 0) {
+          listEl.innerHTML = `<div class="empty-state"><p>Mos taomlar topilmadi.</p></div>`;
+          return;
+        }
+
+        const t = I18N[state.lang];
+        listEl.innerHTML = filtered.map((dish) => {
+          const isConfirmingDelete = state.pendingDeleteId === dish.id;
+          return `
+            <div class="admin-dish-row">
+              ${dish.image ? `
+                <img class="admin-thumb" src="${escapeHtml(dish.image)}" alt="${escapeHtml(dish.titleUz)}" referrerpolicy="no-referrer" onerror="this.style.opacity='0.3'" />
+              ` : `
+                <div class="admin-thumb" style="display:grid;place-items:center;color:var(--text-muted);"><i class="fa-solid fa-utensils"></i></div>
+              `}
+
+              <div class="admin-row-info">
+                <h4>${escapeHtml(dish.titleUz || dish.titleEn)}</h4>
+                <div class="admin-row-meta">
+                  <span>${escapeHtml(dish.category)}</span>
+                  ${dish.halol !== false ? `<span aria-hidden="true">·</span><span style="color:#5ee0a8;font-weight:600;">HALOL</span>` : ''}
+                  ${dish.badge ? `<span aria-hidden="true">·</span><span style="color:var(--accent-gold-bright);font-weight:600;">${escapeHtml(dish.badge)}</span>` : ''}
+                </div>
+              </div>
+
+              <div class="admin-row-actions">
+                <!-- Tezkor Narx Qo'yish (Quick Price Editor) -->
+                <div class="quick-price-group" title="Narxni tezkor o‘zgartirish">
+                  <input
+                    type="number"
+                    class="quick-price-input"
+                    value="${Number(dish.price) || 0}"
+                    min="0"
+                    step="500"
+                    data-price-input="${escapeHtml(dish.id)}"
+                    aria-label="${escapeHtml(dish.titleUz)} narxi"
+                  />
+                  <button type="button" class="btn btn-primary btn-sm admin-save-price" data-id="${escapeHtml(dish.id)}">
+                    Narxni saqlash
+                  </button>
+                </div>
+
+                <label class="switch-wrap" title="Mavjudlik holati">
+                  <input type="checkbox" class="switch-input admin-toggle-avail" data-id="${escapeHtml(dish.id)}" ${dish.available ? 'checked' : ''} />
+                  <span class="switch-track"></span>
+                  <span>${dish.available ? escapeHtml(t.availableText) : escapeHtml(t.unavailableText)}</span>
+                </label>
+
+                <button type="button" class="btn btn-secondary btn-sm admin-edit-dish" data-id="${escapeHtml(dish.id)}">
+                  <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
+                  <span>Tahrirlash</span>
+                </button>
+
+                ${isConfirmingDelete ? `
+                  <button type="button" class="btn btn-danger btn-sm admin-confirm-delete" data-id="${escapeHtml(dish.id)}">O‘chirishni tasdiqlash</button>
+                  <button type="button" class="btn btn-secondary btn-sm admin-cancel-delete">Bekor</button>
+                ` : `
+                  <button type="button" class="btn btn-danger btn-sm admin-delete-dish" data-id="${escapeHtml(dish.id)}">
+                    <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+                    <span>O‘chirish</span>
+                  </button>
+                `}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // =======================================================================
+      // ADD / EDIT DISH MODAL & BASE64 IMAGE COMPRESSION
+      // =======================================================================
+      function openDishEditor(dishId) {
+        const form = document.getElementById('dishEditorForm');
+        form.reset();
+        const isEdit = Boolean(dishId);
+        document.getElementById('dishFormTitle').textContent = isEdit ? 'Taomni tahrirlash' : 'Yangi taom qo‘shish';
+        document.getElementById('editDishId').value = dishId || '';
+
+        if (isEdit) {
+          const dish = state.dishes.find((d) => d.id === dishId);
+          if (dish) {
+            document.getElementById('dishTitleUz').value = dish.titleUz || '';
+            document.getElementById('dishTitleEn').value = dish.titleEn || '';
+            document.getElementById('dishCategory').value = dish.category || 'Milliy Taomlar';
+            document.getElementById('dishPrice').value = dish.price || 0;
+            document.getElementById('dishBadge').value = dish.badge || '';
+            document.getElementById('dishHalol').checked = dish.halol !== false;
+            document.getElementById('dishAvailable').checked = Boolean(dish.available);
+            document.getElementById('dishDescUz').value = dish.descUz || '';
+            document.getElementById('dishDescEn').value = dish.descEn || '';
+            document.getElementById('dishImageUrl').value = dish.image || '';
+            updateImagePreview(dish.image || '');
+          }
+        } else {
+          document.getElementById('dishHalol').checked = true;
+          document.getElementById('dishAvailable').checked = true;
+          updateImagePreview('');
+        }
+
+        document.getElementById('adminPhotoSearchInput').value = '';
+        document.getElementById('adminPhotoSearchStatus').textContent = 'Istalgan taom nomini yozib qidiring — mos rasm chiqadi.';
+        renderPhotoSearchResults(CURATED_LOCAL_PHOTOS);
+        dom.dishFormModal.classList.add('open');
+      }
+
+      function closeDishEditor() {
+        dom.dishFormModal.classList.remove('open');
+      }
+
+      function updateImagePreview(src) {
+        const box = document.getElementById('dishImagePreviewBox');
+        if (!src || !src.trim()) {
+          box.innerHTML = '<span>Rasm tanlanmagan</span>';
+          return;
+        }
+        box.innerHTML = `<img src="${escapeHtml(src.trim())}" alt="Ko‘rinish" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML='<span>Rasm ochilmadi</span>';" />`;
+      }
+
+      function compressImageFileToBase64(file, callback) {
+        const reader = new FileReader();
+        reader.onload = function (evt) {
+          const img = new Image();
+          img.onload = function () {
+            const maxDim = 800;
+            let width = img.width;
+            let height = img.height;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            callback(canvas.toDataURL('image/jpeg', 0.82));
+          };
+          img.src = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      // =======================================================================
+      // ADMIN DISH PHOTO SEARCH (LOCAL + LIVE WIKIPEDIA/WIKIMEDIA FOOD SEARCH)
+      // =======================================================================
+      const CURATED_LOCAL_PHOTOS = [
+        { title: 'Samarqand Oshi (Palov)', tags: 'osh plov palov zigir toy oshi guruch', url: '/src/assets/images/dish_plov_royal_1794994228406.jpg' },
+        { title: 'Qozon Kabob', tags: 'qozon kabob gosht kartoshka qovurma', url: '/src/assets/images/dish_uzbek_qozonkabob_1794994765355.jpg' },
+        { title: 'Tandir Somsa va Manti', tags: 'somsa manti xamir tandir samsa', url: '/src/assets/images/dish_uzbek_somsa_manti_1794994764839.jpg' },
+        { title: 'Shashlik Kabob', tags: 'shashlik kabob komir qiyma jaz', url: '/src/assets/images/dish_shashlik_assorti_1794994228197.jpg' },
+        { title: 'Koza Shorva / Mastava', tags: 'shorva mastava suyuq taom lagmon sup', url: '/src/assets/images/dish_uzbek_shorva_1794994765522.jpg' },
+        { title: 'Achichuk Salat', tags: 'achichuk salat pomidor bodring rayhon', url: '/src/assets/images/dish_salad_achichuk_1794994229095.jpg' },
+        { title: 'Samarqand Ko‘k Choy (Choynak)', tags: 'choy kok choy qora choy limon navvot choynak', url: '/src/assets/images/dish_uzbek_greentea_1794997438520.jpg' },
+        { title: 'Muzdek Ayron / Chalop', tags: 'ayron chalop qatiq rayhon shivit ichimlik', url: '/src/assets/images/dish_uzbek_ayron_1794997438858.jpg' },
+        { title: 'Olcha va O‘rik Kompoti', tags: 'kompot olcha orik sharbat sok ichimlik', url: '/src/assets/images/dish_uzbek_kompot_1794997439953.jpg' },
+        { title: 'Chortoq Mineral Suv', tags: 'suv mineral chortoq gazli gazsiz ichimlik', url: '/src/assets/images/dish_uzbek_mineral_1794997439938.jpg' },
+        { title: 'Anor Limonad va Choy', tags: 'anor limonad ichimlik sharbat qora choy', url: '/src/assets/images/dish_tea_pomegranate_1794994229732.jpg' },
+        { title: 'Fanta Apelsin', tags: 'fanta apelsin gazli ichimlik', url: '/src/assets/images/dish_uzbek_fanta_1794997440115.jpg' },
+        { title: 'Coca-Cola (Kola)', tags: 'cola kola coca cola coca-cola ichimlik gazli', url: '/src/assets/images/dish_drink_cola_1794996750194.jpg' },
+        { title: 'Pepsi', tags: 'pepsi ichimlik gazli kola', url: '/src/assets/images/dish_drink_pepsi_1794996751535.jpg' },
+        { title: 'Samarqand Paxlavasi', tags: 'paxlava baklava shirinlik tort asal pista', url: '/src/assets/images/dish_dessert_baklava_1794994230313.jpg' }
+      ];
+
+      const UZ_FOOD_QUERY_MAP = {
+        osh: 'Uzbek plov pilaf dish',
+        palov: 'Uzbek plov dish',
+        plov: 'Uzbek plov dish',
+        manti: 'Manti dumplings food',
+        somsa: 'Samsa pastry food',
+        samsa: 'Samsa pastry food',
+        shashlik: 'Shashlik kebab',
+        kabob: 'Kebab grilled meat',
+        shorva: 'Shorba lamb soup',
+        mastava: 'Mastava rice soup',
+        lagmon: 'Lagman noodles',
+        norin: 'Naryn Uzbek dish',
+        chuchvara: 'Pelmeni chuchvara soup',
+        dimlama: 'Dimlama Uzbek stew',
+        non: 'Uzbek tandyr non bread',
+        patir: 'Uzbek flatbread',
+        salat: 'Fresh tomato salad',
+        achichuk: 'Tomato onion salad',
+        choy: 'Uzbek green tea teapot',
+        ayron: 'Ayran yogurt drink',
+        chalop: 'Ayran herbs cold yogurt soup',
+        kompot: 'Fruit kompot cherry drink',
+        suv: 'Sparkling mineral water glass',
+        chortoq: 'Mineral water bottle glass',
+        anor: 'Pomegranate juice drink',
+        fanta: 'Orange citrus soda glass',
+        cola: 'Coca-Cola bottle glass',
+        kola: 'Coca-Cola bottle glass',
+        pepsi: 'Pepsi cola drink',
+        paxlava: 'Pistachio baklava dessert',
+        halva: 'Halva dessert'
+      };
+
+      function renderPhotoSearchResults(results) {
+        const grid = document.getElementById('adminPhotoResultsGrid');
+        const currentUrl = document.getElementById('dishImageUrl').value.trim();
+        if (!results.length) {
+          grid.innerHTML = '';
+          return;
+        }
+        grid.innerHTML = results.map((item) => `
+          <button
+            type="button"
+            class="photo-pick-btn ${currentUrl === item.url ? 'selected' : ''}"
+            data-pick-photo-url="${escapeHtml(item.url)}"
+            title="${escapeHtml(item.title)}"
+          >
+            <img src="${escapeHtml(item.url)}" alt="${escapeHtml(item.title)}" referrerpolicy="no-referrer" loading="lazy" />
+            <span class="photo-pick-caption">${escapeHtml(item.title)}</span>
+          </button>
+        `).join('');
+      }
+
+      async function searchDishPhotos(rawQuery) {
+        const q = normalizeSearchText(rawQuery);
+        const statusEl = document.getElementById('adminPhotoSearchStatus');
+        const gridEl = document.getElementById('adminPhotoResultsGrid');
+
+        if (!q) {
+          renderPhotoSearchResults(CURATED_LOCAL_PHOTOS);
+          statusEl.textContent = 'Samarqand taomlari to‘plamidan tanlang yoki istalgan taom nomini kiriting.';
+          return;
+        }
+
+        // 1. Local instant matches
+        const localMatches = CURATED_LOCAL_PHOTOS.filter((item) =>
+          normalizeSearchText(item.title + ' ' + item.tags).includes(q)
+        );
+        renderPhotoSearchResults(localMatches);
+        statusEl.textContent = `"${rawQuery.trim()}" bo‘yicha rasmlar qidirilmoqda...`;
+
+        // 2. Live Wikipedia / Wikimedia Commons food photo search
+        const mappedQuery = UZ_FOOD_QUERY_MAP[q] || `${rawQuery.trim()} dish food`;
+        const remoteResults = [];
+        try {
+          const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(mappedQuery)}&gsrlimit=8&prop=pageimages&pithumbsize=640&format=json&origin=*`;
+          const res = await fetch(wikiUrl);
+          if (res.ok) {
+            const data = await res.json();
+            const pages = data && data.query && data.query.pages ? Object.values(data.query.pages) : [];
+            pages.forEach((p) => {
+              if (p.thumbnail && p.thumbnail.source) {
+                remoteResults.push({ title: p.title, url: p.thumbnail.source });
+              }
+            });
+          }
+
+          if (remoteResults.length < 4) {
+            const uzWikiUrl = `https://uz.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(rawQuery.trim())}&gsrlimit=6&prop=pageimages&pithumbsize=640&format=json&origin=*`;
+            const uzRes = await fetch(uzWikiUrl);
+            if (uzRes.ok) {
+              const uzData = await uzRes.json();
+              const uzPages = uzData && uzData.query && uzData.query.pages ? Object.values(uzData.query.pages) : [];
+              uzPages.forEach((p) => {
+                if (p.thumbnail && p.thumbnail.source && !remoteResults.some((r) => r.url === p.thumbnail.source)) {
+                  remoteResults.push({ title: p.title, url: p.thumbnail.source });
+                }
+              });
+            }
+          }
+        } catch (err) {
+          // Offline or blocked network: keep local matches gracefully
+        }
+
+        const combined = [...localMatches];
+        remoteResults.forEach((r) => {
+          if (!combined.some((c) => c.url === r.url)) combined.push(r);
+        });
+
+        if (combined.length > 0) {
+          renderPhotoSearchResults(combined.slice(0, 8));
+          statusEl.textContent = `"${rawQuery.trim()}" bo‘yicha ${combined.length} ta rasm topildi. Ustiga bosing — avtomatik tanlanadi.`;
+        } else {
+          gridEl.innerHTML = '';
+          statusEl.textContent = `"${rawQuery.trim()}" uchun tayyor rasm topilmadi. Boshqa so‘z yozib ko‘ring yoki kompyuterdan yuklang.`;
+        }
+      }
+
+      // =======================================================================
+      // QR CODE GENERATOR, PNG DOWNLOAD & PRINTABLE TABLE TENT
+      // =======================================================================
+      function initQrGeneratorDefaults() {
+        const urlInput = document.getElementById('qrBaseUrlInput');
+        if (!urlInput.value.trim()) {
+          urlInput.value = window.location.origin + window.location.pathname;
+        }
+      }
+
+      function getTargetQrUrl() {
+        const baseRaw = document.getElementById('qrBaseUrlInput').value.trim() || (window.location.origin + window.location.pathname);
+        const tableRaw = document.getElementById('qrTableInput').value.trim();
+        try {
+          const url = new URL(baseRaw);
+          if (tableRaw) {
+            url.searchParams.set('table', tableRaw);
+          } else {
+            url.searchParams.delete('table');
+          }
+          return url.toString();
+        } catch (err) {
+          if (!tableRaw) return baseRaw;
+          const sep = baseRaw.includes('?') ? '&' : '?';
+          return `${baseRaw}${sep}table=${encodeURIComponent(tableRaw)}`;
+        }
+      }
+
+      function renderFallbackQrSvg(container, text) {
+        const size = 21;
+        let hash = 2166136261;
+        for (let i = 0; i < text.length; i++) {
+          hash ^= text.charCodeAt(i);
+          hash = Math.imul(hash, 16777619);
+        }
+        let cells = '';
+        for (let r = 0; r < size; r++) {
+          for (let c = 0; c < size; c++) {
+            const inFinder = (r < 7 && c < 7) || (r < 7 && c >= size - 7) || (r >= size - 7 && c < 7);
+            let filled = false;
+            if (inFinder) {
+              const lr = r >= size - 7 ? r - (size - 7) : r;
+              const lc = c >= size - 7 ? c - (size - 7) : c;
+              filled = lr === 0 || lr === 6 || lc === 0 || lc === 6 || (lr >= 2 && lr <= 4 && lc >= 2 && lc <= 4);
+            } else {
+              const bit = ((hash >>> ((r * 5 + c) % 28)) ^ (r * 31 + c * 17)) & 1;
+              filled = bit === 1;
+            }
+            if (filled) {
+              cells += `<rect x="${c}" y="${r}" width="1" height="1" fill="#0d0e11"/>`;
+            }
+          }
+        }
+        container.innerHTML = `<svg viewBox="0 0 ${size} ${size}" width="200" height="200" xmlns="http://www.w3.org/2000/svg">${cells}</svg>`;
+      }
+
+      function generateQrCodes() {
+        const targetUrl = getTargetQrUrl();
+        const tableVal = document.getElementById('qrTableInput').value.trim();
+        document.getElementById('qrFinalUrlDisplay').textContent = targetUrl;
+
+        const previewTableEl = document.getElementById('qrTentTableLabel');
+        const printTableEl = document.getElementById('printTentTable');
+        if (tableVal) {
+          const label = `${tableVal.toUpperCase()}-STOL`;
+          previewTableEl.textContent = label;
+          previewTableEl.hidden = false;
+          printTableEl.textContent = label;
+          printTableEl.hidden = false;
+        } else {
+          previewTableEl.hidden = true;
+          printTableEl.hidden = true;
+        }
+
+        const previewMount = document.getElementById('qrCanvasContainer');
+        const printMount = document.getElementById('printTentQrMount');
+        previewMount.innerHTML = '';
+        printMount.innerHTML = '';
+
+        if (typeof window.QRCode === 'function') {
+          state.qrInstance = new window.QRCode(previewMount, {
+            text: targetUrl,
+            width: 200,
+            height: 200,
+            colorDark: '#0d0e11',
+            colorLight: '#ffffff',
+            correctLevel: window.QRCode.CorrectLevel.H
+          });
+
+          state.printQrInstance = new window.QRCode(printMount, {
+            text: targetUrl,
+            width: 240,
+            height: 240,
+            colorDark: '#0d0e11',
+            colorLight: '#ffffff',
+            correctLevel: window.QRCode.CorrectLevel.H
+          });
+        } else {
+          renderFallbackQrSvg(previewMount, targetUrl);
+          renderFallbackQrSvg(printMount, targetUrl);
+        }
+      }
+
+      function downloadQrAsPng() {
+        const previewMount = document.getElementById('qrCanvasContainer');
+        const qrCanvas = previewMount.querySelector('canvas');
+        const qrImg = previewMount.querySelector('img');
+        const tableVal = document.getElementById('qrTableInput').value.trim();
+
+        const outCanvas = document.createElement('canvas');
+        outCanvas.width = 760;
+        outCanvas.height = 980;
+        const ctx = outCanvas.getContext('2d');
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, outCanvas.width, outCanvas.height);
+
+        ctx.strokeStyle = '#c59b27';
+        ctx.lineWidth = 6;
+        ctx.strokeRect(28, 28, outCanvas.width - 56, outCanvas.height - 56);
+
+        ctx.fillStyle = '#0d0e11';
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 46px Georgia, serif';
+        ctx.fillText(state.settings.brandName, outCanvas.width / 2, 118);
+
+        ctx.fillStyle = '#15803d';
+        ctx.font = 'bold 20px sans-serif';
+        ctx.fillText('100% HALOL · SAMARQAND MILLIY TAOMLARI', outCanvas.width / 2, 160);
+
+        if (tableVal) {
+          ctx.fillStyle = '#8b6d16';
+          ctx.font = 'bold 26px monospace';
+          ctx.fillText(`${tableVal.toUpperCase()}-STOL`, outCanvas.width / 2, 206);
+        }
+
+        const drawRestAndDownload = (qrDrawable) => {
+          const qrSize = 440;
+          const qrX = (outCanvas.width - qrSize) / 2;
+          const qrY = 245;
+          ctx.drawImage(qrDrawable, qrX, qrY, qrSize, qrSize);
+
+          ctx.fillStyle = '#1f2937';
+          ctx.font = '600 22px sans-serif';
+          ctx.fillText('MENYUNI OCHISH UCHUN SKANERLANG', outCanvas.width / 2, 760);
+
+          ctx.fillStyle = '#6b7280';
+          ctx.font = '20px monospace';
+          ctx.fillText(`Wi-Fi: ${state.settings.wifiSsid} · ${state.settings.wifiPass}`, outCanvas.width / 2, 830);
+
+          const link = document.createElement('a');
+          const safeSlug = (tableVal ? `stol-${tableVal}` : 'menyu').toLowerCase().replace(/[^a-z0-9-_]/g, '');
+          link.download = `qr-${safeSlug}.png`;
+          link.href = outCanvas.toDataURL('image/png');
+          link.click();
+          showToast('QR-kod PNG yuklab olindi');
+        };
+
+        if (qrCanvas) {
+          drawRestAndDownload(qrCanvas);
+        } else if (qrImg && qrImg.src) {
+          const tmp = new Image();
+          tmp.onload = () => drawRestAndDownload(tmp);
+          tmp.src = qrImg.src;
+        } else {
+          showToast('QR generator tayyorlanmoqda');
+        }
+      }
+
+      // =======================================================================
+      // RESTAURANT SETTINGS & JSON BACKUP
+      // =======================================================================
+      function populateSettingsForm() {
+        const s = state.settings;
+        document.getElementById('setBrandName').value = s.brandName;
+        document.getElementById('setHours').value = s.hours;
+        document.getElementById('setTagline').value = s.tagline;
+        document.getElementById('setAddress').value = s.address;
+        document.getElementById('setWifiSsid').value = s.wifiSsid;
+        document.getElementById('setWifiPass').value = s.wifiPass;
+        document.getElementById('setAdminPin').value = s.adminPin;
+      }
+
+      function exportJsonBackup() {
+        const payload = {
+          exportedAt: new Date().toISOString(),
+          settings: state.settings,
+          dishes: state.dishes
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const dateStr = new Date().toISOString().slice(0, 10);
+        a.href = url;
+        a.download = `samarqand-menyu-zaxira-${dateStr}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('JSON zaxira nusxa yuklandi');
+      }
+
+      function importJsonBackup(file) {
+        const reader = new FileReader();
+        reader.onload = function (evt) {
+          try {
+            const data = JSON.parse(evt.target.result);
+            if (!data || !Array.isArray(data.dishes)) {
+              showToast('Noto‘g‘ri JSON fayl formati');
+              return;
+            }
+            state.dishes = data.dishes;
+            if (data.settings && typeof data.settings === 'object') {
+              state.settings = Object.assign({}, DEFAULT_SETTINGS, data.settings);
+              saveStorage(STORAGE_KEYS.SETTINGS, state.settings);
+            }
+            saveStorage(STORAGE_KEYS.DISHES, state.dishes);
+            renderVenueInfo();
+            renderAdminStats();
+            renderAdminDishes();
+            populateSettingsForm();
+            renderMenuGrid();
+            showToast('Ma’lumotlar muvaffaqiyatli tiklandi');
+          } catch (err) {
+            showToast('JSON faylni o‘qib bo‘lmadi');
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      // =======================================================================
+      // EVENT LISTENERS
+      // =======================================================================
+      function bindEvents() {
+        // Left compact menu toggle (UZ, EN, Admin)
+        const leftMenuBtn = document.getElementById('leftMenuToggleBtn');
+        const leftMenu = document.getElementById('leftQuickMenu');
+        function closeLeftQuickMenu() {
+          leftMenu.classList.remove('open');
+          leftMenuBtn.setAttribute('aria-expanded', 'false');
+        }
+
+        leftMenuBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isOpen = leftMenu.classList.toggle('open');
+          leftMenuBtn.setAttribute('aria-expanded', String(isOpen));
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('.topbar-left')) {
+            closeLeftQuickMenu();
+          }
+        });
+
+        document.getElementById('openAdminFromLeftMenuBtn').addEventListener('click', () => {
+          closeLeftQuickMenu();
+          openLoginModal();
+        });
+
+        // Language switcher
+        document.getElementById('langBtnUz').addEventListener('click', () => {
+          state.lang = 'uz';
+          saveStorage(STORAGE_KEYS.LANG, 'uz');
+          applyTranslations();
+          renderCategoryTabs();
+          renderMenuGrid();
+          renderSearchPhotoDropdown();
+        });
+
+        document.getElementById('langBtnEn').addEventListener('click', () => {
+          state.lang = 'en';
+          saveStorage(STORAGE_KEYS.LANG, 'en');
+          applyTranslations();
+          renderCategoryTabs();
+          renderMenuGrid();
+          renderSearchPhotoDropdown();
+        });
+
+        // Copy Wi-Fi password
+        document.getElementById('copyWifiBtn').addEventListener('click', () => {
+          const pass = state.settings.wifiPass;
+          const t = I18N[state.lang];
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(pass).then(() => showToast(t.wifiCopied)).catch(() => showToast(`${pass}`));
+          } else {
+            showToast(`${t.wifiCopied}: ${pass}`);
+          }
+        });
+
+        // Category tab selection
+        dom.categoryTabs.addEventListener('click', (e) => {
+          const btn = e.target.closest('.cat-tab');
+          if (!btn) return;
+          state.activeCategory = btn.getAttribute('data-category');
+          renderCategoryTabs();
+          renderMenuGrid();
+        });
+
+        // Live search + visual photo dropdown
+        dom.menuSearchInput.addEventListener('input', (e) => {
+          state.searchQuery = e.target.value;
+          dom.searchClearBtn.classList.toggle('visible', state.searchQuery.length > 0);
+          renderSearchPhotoDropdown();
+          renderMenuGrid();
+        });
+
+        dom.menuSearchInput.addEventListener('focus', () => {
+          if (state.searchQuery.trim().length > 0) {
+            renderSearchPhotoDropdown();
+          }
+        });
+
+        document.getElementById('searchPhotoDropdown').addEventListener('click', (e) => {
+          const item = e.target.closest('[data-drop-dish-id]');
+          if (!item) return;
+          const dishId = item.getAttribute('data-drop-dish-id');
+          document.getElementById('searchPhotoDropdown').classList.remove('open');
+          openDishDetail(dishId);
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('.search-box')) {
+            document.getElementById('searchPhotoDropdown').classList.remove('open');
+          }
+        });
+
+        dom.searchClearBtn.addEventListener('click', () => {
+          state.searchQuery = '';
+          dom.menuSearchInput.value = '';
+          dom.searchClearBtn.classList.remove('visible');
+          renderSearchPhotoDropdown();
+          renderMenuGrid();
+          dom.menuSearchInput.focus();
+        });
+
+        // Dish card detail modal
+        dom.menuGrid.addEventListener('click', (e) => {
+          const card = e.target.closest('.dish-card');
+          if (!card) return;
+          openDishDetail(card.getAttribute('data-dish-id'));
+        });
+
+        document.getElementById('closeDishDetailBtn').addEventListener('click', closeDishDetail);
+        dom.dishDetailModal.addEventListener('click', (e) => {
+          if (e.target === dom.dishDetailModal) closeDishDetail();
+        });
+
+        // Single-Admin Login flow (opened via top-left menu)
+        document.getElementById('closeLoginModalBtn').addEventListener('click', closeLoginModal);
+        document.getElementById('cancelLoginBtn').addEventListener('click', closeLoginModal);
+        dom.adminLoginModal.addEventListener('click', (e) => {
+          if (e.target === dom.adminLoginModal) closeLoginModal();
+        });
+
+        document.getElementById('adminLoginForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const entered = document.getElementById('adminPinInput').value.trim();
+          const expected = state.settings.adminPin || DEFAULT_ADMIN_PIN;
+          if (entered === expected) {
+            closeLoginModal();
+            openAdminDashboard();
+          } else {
+            const errEl = document.getElementById('loginErrorBanner');
+            errEl.textContent = I18N[state.lang].wrongPin;
+            errEl.classList.add('visible');
+          }
+        });
+
+        // Admin Dashboard navigation
+        document.getElementById('exitAdminBtn').addEventListener('click', () => closeAdminDashboard(false));
+        document.getElementById('logoutAdminBtn').addEventListener('click', () => {
+          closeAdminDashboard(true);
+          showToast('Admin panel qulflandi');
+        });
+
+        document.querySelectorAll('.admin-tab-btn').forEach((btn) => {
+          btn.addEventListener('click', () => switchAdminTab(btn.getAttribute('data-admin-tab')));
+        });
+
+        // Admin Dish Search
+        document.getElementById('adminSearchInput').addEventListener('input', (e) => {
+          state.adminSearchQuery = e.target.value;
+          renderAdminDishes();
+        });
+
+        // Admin Quick Price Save + Add / Edit / Toggle / Delete delegation
+        document.getElementById('openAddDishBtn').addEventListener('click', () => openDishEditor(null));
+        document.getElementById('closeDishFormBtn').addEventListener('click', closeDishEditor);
+        document.getElementById('cancelDishFormBtn').addEventListener('click', closeDishEditor);
+        dom.dishFormModal.addEventListener('click', (e) => {
+          if (e.target === dom.dishFormModal) closeDishEditor();
+        });
+
+        document.getElementById('adminDishList').addEventListener('click', (e) => {
+          const savePriceBtn = e.target.closest('.admin-save-price');
+          if (savePriceBtn) {
+            const id = savePriceBtn.getAttribute('data-id');
+            const input = document.querySelector(`[data-price-input="${CSS.escape(id)}"]`);
+            const dish = state.dishes.find((d) => d.id === id);
+            if (dish && input) {
+              dish.price = Math.max(0, Number(input.value) || 0);
+              saveStorage(STORAGE_KEYS.DISHES, state.dishes);
+              renderMenuGrid();
+              showToast(`${dish.titleUz || dish.titleEn}: ${formatUZS(dish.price)}`);
+            }
+            return;
+          }
+
+          const editBtn = e.target.closest('.admin-edit-dish');
+          if (editBtn) {
+            openDishEditor(editBtn.getAttribute('data-id'));
+            return;
+          }
+
+          const delBtn = e.target.closest('.admin-delete-dish');
+          if (delBtn) {
+            state.pendingDeleteId = delBtn.getAttribute('data-id');
+            renderAdminDishes();
+            return;
+          }
+
+          const cancelDelBtn = e.target.closest('.admin-cancel-delete');
+          if (cancelDelBtn) {
+            state.pendingDeleteId = null;
+            renderAdminDishes();
+            return;
+          }
+
+          const confirmDelBtn = e.target.closest('.admin-confirm-delete');
+          if (confirmDelBtn) {
+            const id = confirmDelBtn.getAttribute('data-id');
+            state.dishes = state.dishes.filter((d) => d.id !== id);
+            state.pendingDeleteId = null;
+            saveStorage(STORAGE_KEYS.DISHES, state.dishes);
+            renderAdminStats();
+            renderAdminDishes();
+            renderMenuGrid();
+            showToast('Taom o‘chirildi');
+          }
+        });
+
+        document.getElementById('adminDishList').addEventListener('change', (e) => {
+          const toggle = e.target.closest('.admin-toggle-avail');
+          if (!toggle) return;
+          const id = toggle.getAttribute('data-id');
+          const dish = state.dishes.find((d) => d.id === id);
+          if (dish) {
+            dish.available = toggle.checked;
+            saveStorage(STORAGE_KEYS.DISHES, state.dishes);
+            renderAdminStats();
+            renderAdminDishes();
+            renderMenuGrid();
+            showToast(dish.available ? 'Taom mavjud deb belgilandi' : 'Vaqtincha tugagan deb belgilandi');
+          }
+        });
+
+        // Dish form image input + Photo Search + Base64 upload
+        document.getElementById('adminPhotoSearchBtn').addEventListener('click', () => {
+          const q = document.getElementById('adminPhotoSearchInput').value.trim();
+          searchDishPhotos(q);
+        });
+
+        document.getElementById('adminPhotoSearchInput').addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            searchDishPhotos(e.target.value.trim());
+          }
+        });
+
+        document.getElementById('photoQuickTags').addEventListener('click', (e) => {
+          const btn = e.target.closest('[data-photo-q]');
+          if (!btn) return;
+          const q = btn.getAttribute('data-photo-q');
+          document.getElementById('adminPhotoSearchInput').value = q;
+          searchDishPhotos(q);
+        });
+
+        document.getElementById('adminPhotoResultsGrid').addEventListener('click', (e) => {
+          const pickBtn = e.target.closest('[data-pick-photo-url]');
+          if (!pickBtn) return;
+          const url = pickBtn.getAttribute('data-pick-photo-url');
+          document.getElementById('dishImageUrl').value = url;
+          updateImagePreview(url);
+          document.querySelectorAll('.photo-pick-btn').forEach((b) => b.classList.toggle('selected', b === pickBtn));
+          showToast('Taom rasmi tanlandi');
+        });
+
+        document.getElementById('dishImageUrl').addEventListener('input', (e) => {
+          updateImagePreview(e.target.value);
+        });
+
+        document.getElementById('imgModeUrlBtn').addEventListener('click', () => {
+          document.getElementById('dishImageUrl').focus();
+        });
+
+        document.getElementById('dishImageFileInput').addEventListener('change', (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+          compressImageFileToBase64(file, (base64) => {
+            document.getElementById('dishImageUrl').value = base64;
+            updateImagePreview(base64);
+            showToast('Rasm yuklandi');
+          });
+          e.target.value = '';
+        });
+
+        // Save Dish (Add or Update)
+        document.getElementById('dishEditorForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const id = document.getElementById('editDishId').value.trim();
+          const titleUz = document.getElementById('dishTitleUz').value.trim();
+          const titleEn = document.getElementById('dishTitleEn').value.trim() || titleUz;
+          const descUz = document.getElementById('dishDescUz').value.trim();
+          const descEn = document.getElementById('dishDescEn').value.trim() || descUz;
+
+          const payload = {
+            id: id || `smq-${Date.now()}`,
+            titleUz,
+            titleEn,
+            category: document.getElementById('dishCategory').value,
+            price: Math.max(0, Number(document.getElementById('dishPrice').value) || 0),
+            badge: document.getElementById('dishBadge').value,
+            halol: document.getElementById('dishHalol').checked,
+            available: document.getElementById('dishAvailable').checked,
+            descUz,
+            descEn,
+            image: document.getElementById('dishImageUrl').value.trim()
+          };
+
+          if (id) {
+            const idx = state.dishes.findIndex((d) => d.id === id);
+            if (idx !== -1) state.dishes[idx] = payload;
+            showToast('Taom yangilandi');
+          } else {
+            state.dishes.unshift(payload);
+            showToast('Yangi taom qo‘shildi');
+          }
+
+          saveStorage(STORAGE_KEYS.DISHES, state.dishes);
+          closeDishEditor();
+          renderAdminStats();
+          renderAdminDishes();
+          renderMenuGrid();
+        });
+
+        // QR Generator Controls
+        document.getElementById('qrBaseUrlInput').addEventListener('input', generateQrCodes);
+        document.getElementById('qrTableInput').addEventListener('input', generateQrCodes);
+        document.getElementById('downloadQrPngBtn').addEventListener('click', downloadQrAsPng);
+        document.getElementById('printTableTentBtn').addEventListener('click', () => {
+          generateQrCodes();
+          window.print();
+        });
+        document.getElementById('copyQrLinkBtn').addEventListener('click', () => {
+          const url = getTargetQrUrl();
+          const t = I18N[state.lang];
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(() => showToast(t.linkCopied)).catch(() => showToast(url));
+          } else {
+            showToast(url);
+          }
+        });
+
+        // Settings Form
+        document.getElementById('restaurantSettingsForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          state.settings = {
+            brandName: document.getElementById('setBrandName').value.trim() || DEFAULT_SETTINGS.brandName,
+            hours: document.getElementById('setHours').value.trim() || DEFAULT_SETTINGS.hours,
+            tagline: document.getElementById('setTagline').value.trim() || DEFAULT_SETTINGS.tagline,
+            address: document.getElementById('setAddress').value.trim() || DEFAULT_SETTINGS.address,
+            wifiSsid: document.getElementById('setWifiSsid').value.trim() || DEFAULT_SETTINGS.wifiSsid,
+            wifiPass: document.getElementById('setWifiPass').value.trim() || DEFAULT_SETTINGS.wifiPass,
+            adminPin: document.getElementById('setAdminPin').value.trim() || DEFAULT_ADMIN_PIN
+          };
+          saveStorage(STORAGE_KEYS.SETTINGS, state.settings);
+          renderVenueInfo();
+          showToast('Restoran ma’lumotlari saqlandi');
+        });
+
+        // Backup Export / Import / Reset
+        document.getElementById('exportJsonBtn').addEventListener('click', exportJsonBackup);
+        document.getElementById('importJsonInput').addEventListener('change', (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (file) importJsonBackup(file);
+          e.target.value = '';
+        });
+
+        document.getElementById('resetConfirmWrap').addEventListener('click', (e) => {
+          if (e.target.closest('#requestResetBtn')) {
+            document.getElementById('resetConfirmWrap').innerHTML = `
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button type="button" class="btn btn-danger" id="confirmResetActionBtn" style="flex:1;">Qaytarishni tasdiqlash</button>
+                <button type="button" class="btn btn-secondary" id="cancelResetActionBtn">Bekor qilish</button>
+              </div>
+            `;
+          } else if (e.target.closest('#cancelResetActionBtn')) {
+            document.getElementById('resetConfirmWrap').innerHTML = `
+              <button type="button" class="btn btn-danger" id="requestResetBtn" style="width: 100%; justify-content: flex-start;">
+                <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                <span>${escapeHtml(I18N[state.lang].resetSampleBtn)}</span>
+              </button>
+            `;
+          } else if (e.target.closest('#confirmResetActionBtn')) {
+            state.dishes = cloneData(DEFAULT_DISHES);
+            state.settings = cloneData(DEFAULT_SETTINGS);
+            saveStorage(STORAGE_KEYS.DISHES, state.dishes);
+            saveStorage(STORAGE_KEYS.SETTINGS, state.settings);
+            renderVenueInfo();
+            renderAdminStats();
+            renderAdminDishes();
+            populateSettingsForm();
+            renderMenuGrid();
+            document.getElementById('resetConfirmWrap').innerHTML = `
+              <button type="button" class="btn btn-danger" id="requestResetBtn" style="width: 100%; justify-content: flex-start;">
+                <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                <span>${escapeHtml(I18N[state.lang].resetSampleBtn)}</span>
+              </button>
+            `;
+            showToast('Standart Samarqand menyusi tiklandi');
+          }
+        });
+
+        // Release single-admin lock if tab closes
+        window.addEventListener('beforeunload', () => {
+          if (state.isAdminOpen) releaseSingleAdminLock();
+        });
+
+        // Escape key closes open modals and left menu
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            closeLeftQuickMenu();
+            if (dom.dishFormModal.classList.contains('open')) closeDishEditor();
+            else if (dom.dishDetailModal.classList.contains('open')) closeDishDetail();
+            else if (dom.adminLoginModal.classList.contains('open')) closeLoginModal();
+          }
+        });
+      }
+
+      // =======================================================================
+      // INIT
+      // =======================================================================
+      function init() {
+        applyTranslations();
+        renderVenueInfo();
+        renderCategoryTabs();
+        renderMenuGrid();
+        bindEvents();
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>

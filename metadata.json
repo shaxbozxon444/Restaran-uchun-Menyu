@@ -1,0 +1,6 @@
+{
+  "name": "Samarqand Saroyi — Halol Milliy Taomlar Menyusi",
+  "description": "Samarqand milliy taomlari va Halol restoran raqamli menyusi, yagona admin boshqaruv paneli, tezkor narx sozlash va QR-kod generatori.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
